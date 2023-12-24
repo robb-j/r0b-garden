@@ -8,6 +8,7 @@
     <!-- TODO: OpenGraph -->
     <!-- @openlab/alembic inject-css -->
     <link rel="stylesheet" href="https://fonts.openlab.dev/rubik/rubik.css" />
+    <link rel="stylesheet" href="/assets/style.css" />
     <style>
       body {
         font-family: Rubik, system-ui, sans-serif;
@@ -20,12 +21,7 @@
     </style>
   </head>
   <body>
-    <header>{{ site.title }}</header>
-    <main>
-      <center-layout>
-        <article class="flow">{{ content | safe }}</article>
-      </center-layout>
-    </main>
+    {{ content | safe }}
     <!-- @openlab/alembic inject-js -->
     <!-- TODO: fathom -->
   </body>

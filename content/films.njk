@@ -1,0 +1,61 @@
+---
+layout: html.njk
+---
+
+<header>
+  <a href="/">{{ site.title }}</a>
+  /
+  films
+</header>
+
+{% set monthly = collections.films | groupByMonth %}
+{% set currentYear = null %}
+
+<!-- Inspired by https://letterboxd.com/robb_j/films/diary/ -->
+
+<main class="filmDiary">
+  <center-layout>
+    <stack-layout space="s3">
+      <header>
+        <h1>Some films I've watched</h1>
+        <p>In chronological order ... of course</p>
+      </header>
+      
+      {% for month in monthly %}
+      <section class="flow">
+        <h2>{{ month.date | monthAndYear }}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Film</th>
+            </tr>
+          </thead>
+          {% for item in month.collection %}
+          {% set media = collections.media | findBySlug(item.data.mediaSlug) %}
+          <tr>
+            <td>
+              {{ item.page.date | dateOfMonth }}
+              <sup>
+                {{ item.page.date | dateOrdinal }}
+              </sup>
+            </td>
+            <td>
+              <cluster-layout space="s-1" align="center">
+                <a href="{{ item.page.url }}">
+                  {% media_image media, 40 %}
+                </a>
+                <a href="{{ item.page.url }}">
+                  {{ item.data.title }} →
+                </a>
+              </cluster-layout>
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </section>
+      <p></p>
+      {% endfor %}
+    </stack-layout>
+  </center-layout>
+</main>

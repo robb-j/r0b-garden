@@ -1,0 +1,11 @@
+/* NOTE: not in current version of labcoat */
+dl:not([class]) dt {
+  font-weight: 600;
+  font-style: italic;
+}
+dl:not([class]) dd {
+  margin-inline-start: 2ch;
+}
+dl:not([class]) > dd + dt {
+  margin-top: var(--s-1);
+}

@@ -1,0 +1,45 @@
+---
+layout: html.njk
+---
+<header>
+  <a href="/">{{ site.title }}</a>
+  /
+  <a href="/films/">films</a>
+  /
+  {{ title }}
+</header>
+
+{% set media = collections.media | findBySlug(mediaSlug) %}
+
+<!-- TODO: make sure these are ordered correctly -->
+
+<main class="film">
+  <center-layout>
+    <stack-layout>
+      <sidebar-layout>
+        {% media_image media, 200 %}
+        <dl>
+          <dt>when</dt>
+          <dd>{{ date | longDate }}</dd>
+          <dt>film</dt>
+          <dd>
+            <a href="{{ url }}">{{ title }}</a>
+          </dd>
+          <dt>source</dt>
+          <dd>
+            <a href="{{ refs.masodon_status[0] | mastodonStatusLink }}">Mastodon</a>
+          </dd>
+          <dt>blurb</dt>
+          <dd>
+            {{ blurb }}
+          </dd>
+        </dl>
+      </sidebar-layout>
+      
+      <div class="flow">
+        <h2>thoughts</h2>
+        {{ content | safe }}
+      </div>
+    </stack-layout>
+  </center-layout>
+</main>

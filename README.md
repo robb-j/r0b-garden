@@ -7,6 +7,7 @@
 **docs**
 
 - [Minio](https://min.io/docs/minio/linux/developers/javascript/API.html)
+- [Nunjucks](https://mozilla.github.io/nunjucks/templating.html)
 
 **thoughts**
 

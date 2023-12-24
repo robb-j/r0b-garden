@@ -11,6 +11,7 @@ import parseLinkHeader from 'parse-link-header'
 import Yaml from 'yaml'
 import * as cheerio from 'cheerio'
 
+import { emplace } from '../utils.js'
 import config from '../content/_data/mastodon.json' assert { type: 'json' }
 
 const hashtags = new Set(['photos', 'review', 'notes', 'nowplaying'])
@@ -184,15 +185,6 @@ function getOrigin(status, statuses) {
     current = statuses[current.in_reply_to_id]
   }
   return current
-}
-
-function emplace(map, key, operation = {}) {
-  map.set(
-    key,
-    map.get(key) !== undefined
-      ? operation.update?.(map.get(key), key, map)
-      : operation.insert?.(key, map),
-  )
 }
 
 async function downloadImage(media) {
