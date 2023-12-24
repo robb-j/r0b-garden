@@ -1,0 +1,8 @@
+{
+  "actions" : {
+    "run" : {
+      "enabled" : true,
+      "path" : "tools\/mastodon.mjs"
+    }
+  }
+}

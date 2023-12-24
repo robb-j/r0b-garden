@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{{ title + ' |' if title }} {{ site.title }}</title>
+    <meta charset="utf8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="{{ meta.color or '#5CB171' }}" />
+    <!-- TODO: OpenGraph -->
+    <!-- @openlab/alembic inject-css -->
+    <link rel="stylesheet" href="https://fonts.openlab.dev/rubik/rubik.css" />
+    <style>
+      body {
+        font-family: Rubik, system-ui, sans-serif;
+      }
+      figcaption {
+        text-align: center;
+        font-style: italic;
+        margin-bottom: 2em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>{{ site.title }}</header>
+    <main>
+      <center-layout>
+        <article class="flow">{{ content | safe }}</article>
+      </center-layout>
+    </main>
+    <!-- @openlab/alembic inject-js -->
+    <!-- TODO: fathom -->
+  </body>
+</html>

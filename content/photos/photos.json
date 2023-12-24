@@ -1,0 +1,4 @@
+{
+  "tags": ["photos"],
+  "layout": "photos.njk"
+}

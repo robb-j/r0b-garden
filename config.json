@@ -1,0 +1,10 @@
+{
+  "mastodon": {
+    "types": [
+      {
+        "hashtags": ["notes"],
+        "directory": "content/notes"
+      }
+    ]
+  }
+}
