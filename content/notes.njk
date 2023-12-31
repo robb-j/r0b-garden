@@ -1,0 +1,43 @@
+---
+layout: html.njk
+---
+
+<header>
+  <a href="/">{{ site.title }}</a>
+  /
+  notes
+</header>
+
+<main>
+  <sidebar-layout>
+    <nav>
+      <p><strong>Tags</strong></p>
+      <ul role="list">
+        {% for label in collections.label %}
+        <li>
+          <a href="/notes/tag/{{ label.fileSlug }}">
+            #{{ label.data.title }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+    <div>
+      <center-layout>
+        <stack-layout>
+          <header class="flow">
+            <h1>my notes ... on things</h1>
+          </header>
+          
+          <ul>
+            {% for note in collections.note %}
+            <li>
+              <a href="{{ note.url }}">{{ note | pickTitle }} →</a>
+            </li>
+            {% endfor %}
+          </ul>
+        </stack-layout>
+      </center-layout>
+    </div>
+  </sidebar-layout>
+</main>

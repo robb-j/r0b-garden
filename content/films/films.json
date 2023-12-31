@@ -1,4 +1,4 @@
 {
-  "tags": ["films"],
+  "tags": ["film"],
   "layout": "film.njk"
 }

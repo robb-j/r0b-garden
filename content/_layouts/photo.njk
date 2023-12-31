@@ -1,3 +1,34 @@
 ---
-layout: simple.njk
+layout: html.njk
 ---
+
+<header>
+  <a href="/">{{ site.title }}</a>
+  /
+  <a href="/photos/">photos</a>
+  /
+  {{ title or 'photo' }}
+</header>
+
+<main class="photo">
+  <center-layout>
+    <header class="flow">
+      {{ content | safe }}
+      <p class="photoMeta">
+        {{ date | longDate }} ⸻ ???
+      </p>
+    </header>
+  </center-layout>
+  <center-layout>
+    <stack-layout>
+      {% for slug in mediaSlugs %}
+      {% set media = collections.media | findBySlug(slug) %}
+      <figure>
+        {% media_image media, 500 %}
+        <!--  -->
+        <figcaption>{{ media.content | safe }}</figcaption>
+      </figure>
+      {% endfor %}
+    </stack-layout>
+  </center-layout>
+</main>

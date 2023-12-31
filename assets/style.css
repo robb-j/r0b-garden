@@ -9,3 +9,48 @@ dl:not([class]) dd {
 dl:not([class]) > dd + dt {
   margin-top: var(--s-1);
 }
+
+/* === */
+
+.tune {
+  margin: calc(-1 * var(--s1));
+  padding: var(--s1);
+}
+.tune summary {
+  display: grid;
+  grid-template-columns: max-content auto;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--s-1);
+}
+.tune summary img {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+}
+.tune-title {
+  font-weight: bold;
+  justify-self: flex-end;
+}
+.tune-description {
+  font-style: italic;
+}
+.tune[open] {
+  background: var(--highlight);
+  border-radius: var(--s0);
+}
+
+/* === */
+.photos header {
+  margin-bottom: var(--s1);
+}
+
+.photo header {
+  margin-bottom: var(--s1);
+}
+
+.photoMeta {
+  font-style: italic;
+}
+
+figure > img {
+  margin: auto;
+}

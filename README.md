@@ -25,8 +25,6 @@
 
 **todos**
 
-- sketch out layouts
 - maybe try WebC
 - get `tools/mastodon.js` to produce content in the desired format
 - get `tools/mastodon.js` to upload media to S3 bucket
-- should media be in `content` folder?

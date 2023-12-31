@@ -15,12 +15,14 @@ function monthlyKey(date) {
     .padStart(2, '0')}-01`
 }
 
+const shortDate = new Intl.DateTimeFormat('en-GB', {
+  timeStyle: undefined,
+  dateStyle: 'medium',
+})
+
 const filters = {
   findBySlug(collection, slug) {
     return collection.find((item) => item.page.fileSlug === slug)
-  },
-  log(...args) {
-    console.log(...args)
   },
   groupByMonth(collection) {
     const buckets = new Map()
@@ -34,9 +36,20 @@ const filters = {
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([month, collection]) => ({ date: new Date(month), collection }))
   },
-  mastodonStatusLink(id) {
+  mastodonStatusLink(refs) {
     // TODO: this should be from data
-    return `https://hyem.tech/@rob/${id}`
+    return `https://hyem.tech/@rob/${refs.mastodon_status[0]}`
+  },
+  isActiveLabel(label, tags) {
+    return tags.some((t) => t === `label:${label.fileSlug}`)
+  },
+  tagsToLabels(labels, tags) {
+    return tags
+      .map((tag) => labels.find((l) => tag === `label:${l.fileSlug}`))
+      .filter((v) => v)
+  },
+  pickTitle(item) {
+    return item.data.title ?? shortDate.format(item.page.date)
   },
 }
 
@@ -44,6 +57,11 @@ const shortcodes = {
   media_image(media, width = media.data.width) {
     const height = width * (media.data.height / media.data.width)
     return `<img src="${media.data.original}" width="${width}" height="${height}">`
+  },
+  media_image_preview(media, width = media.data.width) {
+    const height = width * (media.data.height / media.data.width)
+    const src = media.data.preview ?? media.data.original
+    return `<img src="${src}" width="${width}" height="${height}">`
   },
 }
 

@@ -1,0 +1,33 @@
+---
+layout: html.njk
+---
+
+<header>
+  <a href="/">{{ site.title }}</a>
+  /
+  photos
+</header>
+
+<main class="photos">
+  <center-layout>
+    <header class="flow">
+      <h1>photos i took</h1>
+      <p>nice pics from my camera</p>
+    </header>
+  </center-layout>
+  
+  <center-layout max="92em">
+    <grid-layout space="s-4" min="220px">
+      {% for photo in collections.photo %}
+      {% for slug in photo.data.mediaSlugs %}
+      {% set media = collections.media | findBySlug(slug) %}
+      <a href="{{ photo.url }}">
+        <frame-layout ratio="1:1">
+          {% media_image_preview media, 500 %}
+        </frame-layout>
+      </a>
+      {% endfor %}
+      {% endfor %}
+    </grid-layout>
+  </center-layout>
+</main>

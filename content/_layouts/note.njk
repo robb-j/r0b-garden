@@ -1,3 +1,58 @@
 ---
-layout: simple.njk
+layout: html.njk
 ---
+<header>
+  <a href="/">{{ site.title }}</a>
+  /
+  <a href="/notes/">notes</a>
+  /
+  {{ title or 'note' }}
+</header>
+
+<main class="note">
+  <sidebar-layout>
+    <nav>
+      <p><strong>Tags</strong></p>
+      <ul role="list">
+        {% for label in collections.label %}
+        {% set isActive = label | isActiveLabel(tags) %}
+        <li>
+          <a
+            href="/notes/tag/{{ label.fileSlug }}"
+            aria-current="{{ 'page' if isActive else 'false' }}"
+          >#{{ label.data.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+    <div>
+      <center-layout>
+        <stack-layout>
+          <header>
+            <h1>{{ title or 'Note' }}</h1>
+            <cluster-layout>
+              {% for label in collections.label | tagsToLabels(tags) %}
+              <a href="/notes/tag/{{ label.fileSlug }}">#{{ label.data.title }}</a>
+              {% endfor %}
+            </cluster-layout>
+          </header>
+          
+          <reel-layout>
+            {% for slug in mediaSlugs %}
+            {% set media = collections.media | findBySlug(slug) %}
+            <figure>
+              {% media_image media, 500 %}
+              <!--  -->
+              <figcaption>TODO: work out how to inline the media as the caption</figcaption>
+            </figure>
+            {% endfor %}
+          </reel-layout>
+          
+          <article class="flow">
+            {{ content | safe }}
+          </article>
+        </stack-layout>
+      </center-layout>
+    </div>
+  </sidebar-layout>
+</main>

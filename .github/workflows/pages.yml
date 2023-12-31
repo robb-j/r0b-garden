@@ -1,0 +1,52 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # - name: Eleventy cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: .cache
+      #     key: ${{ runner.os }}-eleventy
+
+      - run: npm ci
+
+      - name: Build website
+        run: npm run build
+        env:
+          NODE_ENV: production
+          TZ: Europe/London
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v3

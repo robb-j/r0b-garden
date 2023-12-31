@@ -8,9 +8,6 @@ layout: html.njk
   films
 </header>
 
-{% set monthly = collections.films | groupByMonth %}
-{% set currentYear = null %}
-
 <!-- Inspired by https://letterboxd.com/robb_j/films/diary/ -->
 
 <main class="filmDiary">
@@ -21,7 +18,7 @@ layout: html.njk
         <p>In chronological order ... of course</p>
       </header>
       
-      {% for month in monthly %}
+      {% for month in collections.film | groupByMonth %}
       <section class="flow">
         <h2>{{ month.date | monthAndYear }}</h2>
         <table>

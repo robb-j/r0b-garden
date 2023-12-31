@@ -1,0 +1,49 @@
+---
+layout: html.njk
+---
+
+<header>
+  <a href="/">{{ site.title }}</a>
+  /
+  tunes
+</header>
+
+<main>
+  <center-layout>
+    <stack-layout space="s3">
+      <header class="flow">
+        <h1>tunes i like</h1>
+        <p>certified bangers</p>
+      </header>
+      
+      
+      {% for month in collections.tune | groupByMonth %}
+      <section class="flow">
+        <h2>{{ month.date | monthAndYear }}</h2>
+        
+        <stack-layout>
+          {% for item in month.collection %}
+          {% set media = collections.media | findBySlug(item.data.mediaSlug) %}
+          <details class="tune">
+            <summary>
+              {% media_image media, 120 %}
+              <p class="tune-title">{{ item.data.title }}</p>
+              <p class="tune-description">{{ item.data.description }}</p>
+            </summary>
+            {{ item.content | safe }}
+            <cluster-layout>
+            <a href="{{ item.data.url }}">
+              View
+            </a>
+            <a href="{{ item.data.refs | mastodonStatusLink }}">
+              Mastodon
+            </a>
+            </cluster-layout>
+          </details>
+          {% endfor %}
+        </stack-layout>
+      </section>
+      {% endfor %}
+    </stack-layout>
+  </center-layout>
+</main>
