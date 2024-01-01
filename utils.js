@@ -204,3 +204,23 @@ export function getCardMedia(card) {
     content: card.title,
   }
 }
+
+export function parseOpengraph(inputText) {
+  const $ = cheerio.load(inputText)
+
+  return {
+    type: $('meta[property="og:type"]')?.attr('content') ?? null,
+    title:
+      $('meta[name="twitter:title"]')?.attr('content') ??
+      $('meta[property="og:title"]')?.attr('content') ??
+      $('head > title')?.text() ??
+      null,
+    description:
+      $('meta[name="twitter:description"]')?.attr('content') ??
+      $('meta[property="og:description"]')?.attr('content') ??
+      $('meta[name="description"]')?.attr('content') ??
+      null,
+    image: $('meta[property="og:image"]')?.attr('content') ?? null,
+    url: $('meta[property="og:url"]')?.attr('content') ?? null,
+  }
+}

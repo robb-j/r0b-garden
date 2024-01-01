@@ -6,7 +6,7 @@
     },
     "run" : {
       "enabled" : true,
-      "script" : "#!\/bin\/sh\n.\/tools\/mastodon.js --dry-run --cached"
+      "script" : "#!\/bin\/sh\n.\/tools\/mastodon.js --cached"
     }
   },
   "openLogOnRun" : "start"

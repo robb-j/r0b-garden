@@ -15,6 +15,7 @@ import {
   statusUrls,
   getAttachmentMedia,
   getCardMedia,
+  parseOpengraph,
 } from '../utils.js'
 
 describe('emplace', () => {
@@ -401,6 +402,72 @@ describe('getCardMedia', () => {
         content: 'cool image',
       },
       'should convert to a media object',
+    )
+  })
+})
+
+describe('parseOpengraph', () => {
+  it('parses html', () => {
+    assert.deepEqual(
+      parseOpengraph(`
+        <html>
+        <head>
+          <title>Example</title>
+          <meta name="description" content="About this website">
+        </head>
+        </html> 
+      `),
+      {
+        type: null,
+        title: 'Example',
+        description: 'About this website',
+        image: null,
+        url: null,
+      },
+      'should parse out standard html <meta> tags',
+    )
+  })
+  it('parses opengraph', () => {
+    assert.deepEqual(
+      parseOpengraph(`
+        <html>
+        <head>
+          <meta property="og:type" content="website">
+          <meta property="og:title" content="Example">
+          <meta property="og:description" content="About this website">
+          <meta property="og:image" content="https://example.com/opengraph.png">
+          <meta property="og:url" content="https://example.com">
+        </head>
+        </html> 
+      `),
+      {
+        type: 'website',
+        title: 'Example',
+        description: 'About this website',
+        image: 'https://example.com/opengraph.png',
+        url: 'https://example.com',
+      },
+      'should parse out OpenGraph <meta> tags',
+    )
+  })
+  it('parses twitter', () => {
+    assert.deepEqual(
+      parseOpengraph(`
+        <html>
+        <head>
+          <meta name="twitter:title" content="Example">
+          <meta name="twitter:description" content="About this website">
+        </head>
+        </html> 
+      `),
+      {
+        type: null,
+        title: 'Example',
+        description: 'About this website',
+        image: null,
+        url: null,
+      },
+      'should parse out Twitter <meta> tags',
     )
   })
 })

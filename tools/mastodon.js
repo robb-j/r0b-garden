@@ -8,6 +8,7 @@ import process from 'node:process'
 import { Writable } from 'node:stream'
 import parseLinkHeader from 'parse-link-header'
 import Yaml from 'yaml'
+import * as cheerio from 'cheerio'
 
 import config from '../config.json' assert { type: 'json' }
 import {
@@ -21,6 +22,7 @@ import {
   getAttachmentMedia,
   getCardMedia,
   emplaceStatus,
+  parseOpengraph,
 } from '../utils.js'
 
 const cacheURL = new URL('../.cache/mastodon.json', import.meta.url)
@@ -153,6 +155,24 @@ const templates = {
 // === MAIN ===
 //
 
+async function fetchCard(status) {
+  try {
+    const res = await fetch(status.card.url)
+    if (!res.ok) throw new Error('Failed request: ' + res.statusText)
+
+    const { title, description, image } = parseOpengraph(await res.text())
+
+    if (title) status.card.title = title
+    if (description) status.card.description = description
+    if (image) status.card.image = image
+
+    return true
+  } catch (error) {
+    console.debug('fetchCard failed', error)
+    return false
+  }
+}
+
 async function fetchCache(userId) {
   const cache = { statuses: {}, media: {} }
 
@@ -165,7 +185,12 @@ async function fetchCache(userId) {
 
       // Loop through each status for that tag including parents & children
       for await (const status of iterateUserHashtag(userId, tag)) {
-        console.debug(' - ', status.id)
+        console.debug(' - ' + status.id)
+
+        if (status.card && !status.card.image) {
+          console.debug('   fetching %s', status.card.url)
+          await fetchCard(status)
+        }
 
         // Store the status & related template
         cache.statuses[status.id] = { ...status, template }
