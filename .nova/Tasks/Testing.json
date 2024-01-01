@@ -1,0 +1,9 @@
+{
+  "actions" : {
+    "run" : {
+      "enabled" : true,
+      "script" : "#!\/bin\/sh\nnode --test --test-reporter=spec"
+    }
+  },
+  "openLogOnRun" : "start"
+}

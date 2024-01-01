@@ -8,6 +8,7 @@
 
 - [Minio](https://min.io/docs/minio/linux/developers/javascript/API.html)
 - [Nunjucks](https://mozilla.github.io/nunjucks/templating.html)
+- [Cheerio](https://cheerio.js.org/docs/api)
 
 **thoughts**
 
@@ -28,3 +29,4 @@
 - maybe try WebC
 - get `tools/mastodon.js` to produce content in the desired format
 - get `tools/mastodon.js` to upload media to S3 bucket
+- better word than `media` is it plural or not?

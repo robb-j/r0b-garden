@@ -1,10 +1,24 @@
 {
   "mastodon": {
-    "types": [
-      {
+    "url": "https://hyem.tech/",
+    "username": "rob",
+    "types": {
+      "film": {
+        "hashtags": ["review"],
+        "directory": "content/films"
+      },
+      "note": {
         "hashtags": ["notes"],
         "directory": "content/notes"
+      },
+      "photo": {
+        "hashtags": ["photos"],
+        "directory": "content/photos"
+      },
+      "tune": {
+        "hashtags": ["nowplaying"],
+        "directory": "content/tunes"
       }
-    ]
+    }
   }
 }

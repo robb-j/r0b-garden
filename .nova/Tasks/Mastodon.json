@@ -1,8 +1,13 @@
 {
   "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "#!\/bin\/sh\n.\/tools\/mastodon.js --dry-run"
+    },
     "run" : {
       "enabled" : true,
-      "path" : "tools\/mastodon.mjs"
+      "script" : "#!\/bin\/sh\n.\/tools\/mastodon.js --dry-run --cached"
     }
-  }
+  },
+  "openLogOnRun" : "start"
 }
