@@ -205,7 +205,11 @@ async function processThreads(threads, dryRun) {
     collections[template] = await loadCollection(baseUrl)
   }
 
-  for (const thread of Object.values(threads)) {
+  const oldestThreads = Object.entries(threads)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map((e) => e[1])
+
+  for (const thread of oldestThreads) {
     for (const status of thread) {
       const contentType = config.mastodon.types[status.template]
       const pages = collections[status.template]
@@ -251,10 +255,32 @@ async function processThreads(threads, dryRun) {
   }
 }
 
+function prettyYaml(data) {
+  const doc = Yaml.parseDocument(Yaml.stringify(data))
+
+  const refs = doc.get('refs')
+  if (refs && Yaml.isCollection(refs)) {
+    for (const item of refs.items) {
+      if (Yaml.isSeq(item.value)) {
+        item.value.flow = true
+      }
+    }
+  }
+
+  const media = doc.get('media')
+  if (media && Yaml.isSeq(media)) {
+    media.flow = true
+  }
+
+  return doc
+    .toString({ singleQuote: true, flowCollectionPadding: false })
+    .trim()
+}
+
 async function createPage(page) {
   await fs.writeFile(
     page.url,
-    [Yaml.stringify(page.data), '---', page.content],
+    ['---', prettyYaml(page.data), '---', '', page.content].join('\n'),
     'utf8',
   )
 }
@@ -283,6 +309,8 @@ async function main() {
   await processThreads(cache.threads, dryRun)
 
   await processMedia(cache.media, dryRun)
+
+  // TODO: process labels
 }
 
 //
