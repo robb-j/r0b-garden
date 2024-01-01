@@ -40,19 +40,50 @@ describe('emplace', () => {
 })
 
 describe('statusVisitor', () => {
-  it('yields statuses', () => {
-    const visit = statusVisitor()
-    const result = Array.from(visit({ id: 1 }, { id: 2 }, { id: 3 }))
+  it('yields statuses from the user', () => {
+    const visit = statusVisitor(9)
+    const account = { id: 9 }
+    const result = Array.from(
+      visit({ id: 1, account }, { id: 2, account }, { id: 3, account }),
+    )
     assert.deepEqual(
       result,
-      [{ id: 1 }, { id: 2 }, { id: 3 }],
+      [
+        { id: 1, account },
+        { id: 2, account },
+        { id: 3, account },
+      ],
       'should yield each of the statuses',
     )
   })
   it('de-duplicates statuses', () => {
-    const visit = statusVisitor()
-    const result = Array.from(visit({ id: 1 }, { id: 1 }))
-    assert.deepEqual(result, [{ id: 1 }], 'should only yields a status once')
+    const visit = statusVisitor(9)
+    const account = { id: 9 }
+    const result = Array.from(visit({ id: 1, account }, { id: 1, account }))
+    assert.deepEqual(
+      result,
+      [{ id: 1, account }],
+      'should only yields a status once',
+    )
+  })
+  it('ignores non-author statuses', () => {
+    const visit = statusVisitor(9)
+
+    assert.deepEqual(
+      Array.from(visit({ id: 1, account: { id: 7 } })),
+      [],
+      'should only yield status from the set user',
+    )
+  })
+  it('ignores author replies to non-author', () => {
+    const visit = statusVisitor(9)
+    assert.deepEqual(
+      Array.from(
+        visit({ id: 1, account: { id: 9 }, in_reply_to_account_id: 7 }),
+      ),
+      [],
+      'should only yield replies to the author themselves',
+    )
   })
 })
 

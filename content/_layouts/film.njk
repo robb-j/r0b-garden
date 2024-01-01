@@ -25,10 +25,12 @@ layout: html.njk
           <dd>
             <a href="{{ url }}">{{ title }}</a>
           </dd>
+          {% if refs | mastodonStatusLink %}
           <dt>source</dt>
           <dd>
             <a href="{{ refs | mastodonStatusLink }}">Mastodon</a>
           </dd>
+          {% endif %}
           <dt>blurb</dt>
           <dd>
             {{ blurb }}

@@ -35,9 +35,11 @@ layout: html.njk
             <a href="{{ item.data.url }}">
               View
             </a>
+            {% if item.data.refs | mastodonStatusLink %}
             <a href="{{ item.data.refs | mastodonStatusLink }}">
               Mastodon
             </a>
+            {% endif %}
             </cluster-layout>
           </details>
           {% endfor %}

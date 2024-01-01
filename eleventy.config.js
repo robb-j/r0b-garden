@@ -37,6 +37,7 @@ const filters = {
       .map(([month, collection]) => ({ date: new Date(month), collection }))
   },
   mastodonStatusLink(refs) {
+    if (!refs?.mastodon_status?.[0]) return null
     // TODO: this should be from data
     return `https://hyem.tech/@rob/${refs.mastodon_status[0]}`
   },

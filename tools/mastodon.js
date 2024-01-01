@@ -250,7 +250,7 @@ async function processThreads(threads, dryRun) {
         },
         update: async (page) => {
           // Update the page
-          page.content += '\n' + content
+          page.content += '\n\n' + content
           page.data.refs.mastodon_status.push(status.id)
 
           if (dryRun) {
@@ -353,7 +353,7 @@ async function* iterateUserHashtag(userId, tag) {
   endpoint.searchParams.set('tagged', tag)
 
   // Remember which ids have been processed to not duplicate
-  const visit = statusVisitor()
+  const visit = statusVisitor(userId)
 
   // Iterate through all the statuses
   for await (const status of iterateEndpoint(endpoint)) {

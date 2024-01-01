@@ -24,11 +24,18 @@ export function emplace(map, key, operation = {}) {
   )
 }
 
-export function statusVisitor() {
+export function statusVisitor(userId) {
   const visited = new Set()
   return function* visit(...statuses) {
     for (const status of statuses) {
       if (visited.has(status.id)) return
+      if (status.account.id !== userId) return
+      if (
+        status.in_reply_to_account_id &&
+        status.in_reply_to_account_id !== userId
+      ) {
+        return
+      }
       visited.add(status.id)
       yield status
     }
