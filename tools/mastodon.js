@@ -116,7 +116,7 @@ const templates = {
         media: status.media_attachments.map((a) => getAttachmentMedia(a).id),
         // TODO: map to "label"'s name ?'
         tags: status.tags
-          .filter((t) => t.name !== 'note')
+          .filter((t) => t.name !== 'notes')
           .map((t) => `label:${t.name}`),
       },
     }
@@ -153,7 +153,7 @@ const templates = {
 // === MAIN ===
 //
 
-async function loadData(userId) {
+async function fetchCache(userId) {
   const cache = { statuses: {}, media: {} }
 
   const allMedia = new Map()
@@ -199,21 +199,28 @@ async function loadData(userId) {
 }
 
 async function processThreads(threads, dryRun) {
+  // Pre load collections for each content-type
   const collections = {}
   for (const [template, contentType] of Object.entries(mastodon.types)) {
     const baseUrl = new URL(`../${contentType.directory}/`, import.meta.url)
     collections[template] = await loadCollection(baseUrl)
   }
 
+  // Sort the threads oldest first so older toots have lower identifiers
   const oldestThreads = Object.entries(threads)
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map((e) => e[1])
 
+  let skipped = 0
+
+  // Loop through each status in each thread.
+  // Oldest toots come first so threads are appended to existing files
   for (const thread of oldestThreads) {
     for (const status of thread) {
       const contentType = config.mastodon.types[status.template]
       const pages = collections[status.template]
 
+      // Process the status using the related template
       const { content, data } = templates[status.template](status)
 
       await emplaceStatus(status, pages, {
@@ -221,38 +228,47 @@ async function processThreads(threads, dryRun) {
           if (dryRun) {
             console.log('skip status=%o', status.id, page.url)
           }
+          skipped++
         },
         insert: async () => {
-          // Create file
+          // Create page
           const id = nextPage(pages.keys())
           const url = new URL(
             `../${contentType.directory}/${id}.md`,
             import.meta.url,
           )
+
+          // Add page to collection
           const page = { url, content, data }
-          pages.set(id, page)
+          pages.set(`${id}.md`, page)
 
           if (dryRun) {
-            console.log('create', url.toString())
+            console.log('create %o %O\n%s\n', url.toString(), data, content)
           } else {
-            await createPage(page)
+            await writePage(page)
           }
         },
         update: async (page) => {
-          // Update the file
+          // Update the page
           page.content += '\n' + content
+          page.data.refs.mastodon_status.push(status.id)
 
           if (dryRun) {
-            console.log('update', page.url)
+            console.log(
+              'update %o %O\n%s\n',
+              page.url.toString(),
+              data,
+              content,
+            )
           } else {
-            // TODO: append content to the file
+            await writePage(page)
           }
         },
       })
-
-      return console.log(status.template, templates[status.template](status))
     }
   }
+
+  console.log('skipped statuses', skipped)
 }
 
 function prettyYaml(data) {
@@ -263,6 +279,12 @@ function prettyYaml(data) {
     for (const item of refs.items) {
       if (Yaml.isSeq(item.value)) {
         item.value.flow = true
+
+        for (const id of item.value.items) {
+          if (Yaml.isScalar(id)) {
+            id.type = 'QUOTE_SINGLE'
+          }
+        }
       }
     }
   }
@@ -277,16 +299,21 @@ function prettyYaml(data) {
     .trim()
 }
 
-async function createPage(page) {
+// The page needs to be re-written each time because the frontmatter + content change
+async function writePage(page) {
   await fs.writeFile(
     page.url,
-    ['---', prettyYaml(page.data), '---', '', page.content].join('\n'),
+    ['---', prettyYaml(page.data), '---', '', page.content].join('\n') + '\n',
     'utf8',
   )
 }
 
 async function processMedia(media, dryRun) {
   // TODO: ...
+}
+
+async function processLabels() {
+  // ... ???
 }
 
 async function main() {
@@ -302,7 +329,7 @@ async function main() {
 
   const cache = fromCache
     ? JSON.parse(await fs.readFile(cacheURL, 'utf8'))
-    : await loadData(user.id)
+    : await fetchCache(user.id)
 
   // Process "cache"
 
