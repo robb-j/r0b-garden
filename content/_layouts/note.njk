@@ -43,7 +43,7 @@ layout: html.njk
             <figure>
               {% media_image m, 500 %}
               <!--  -->
-              <figcaption>{{ media.content | safe }}</figcaption>
+              <figcaption>{{ m.content | safe }}</figcaption>
             </figure>
             {% endfor %}
           <!-- </reel-layout> -->

@@ -42,13 +42,15 @@ dl:not([class]) > dd + dt {
 .photos header {
   margin-bottom: var(--s1);
 }
-
 .photo header {
   margin-bottom: var(--s1);
 }
-
 .photoMeta {
   font-style: italic;
+}
+.photo figure > img {
+  width: 100%;
+  height: auto;
 }
 
 figure > img {

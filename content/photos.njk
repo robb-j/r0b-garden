@@ -18,7 +18,7 @@ layout: html.njk
   
   <center-layout max="92em">
     <grid-layout space="s-4" min="220px">
-      {% for photo in collections.photo %}
+      {% for photo in collections.photo | reverse %}
       {% for slug in photo.data.media %}
       {% set m = collections.media | findBySlug(slug) %}
       <a href="{{ photo.url }}">

@@ -4,6 +4,7 @@ import { eleventyAlembic } from '@openlab/alembic/11ty.cjs'
 import markdown from 'markdown-it'
 import markdownAnchor from 'markdown-it-anchor'
 import syntaxHighlight from '@11ty/eleventy-plugin-syntaxhighlight'
+import * as cheerio from 'cheerio'
 
 import { emplace } from './utils.js'
 import datesPlugin from './config/dates.js'
@@ -35,6 +36,7 @@ const filters = {
     return Array.from(buckets.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([month, collection]) => ({ date: new Date(month), collection }))
+      .reverse()
   },
   mastodonStatusLink(refs) {
     if (!refs?.mastodon_status?.[0]) return null
@@ -52,11 +54,14 @@ const filters = {
   pickTitle(item) {
     return item.data.title ?? shortDate.format(item.page.date)
   },
+  htmlText(inputText) {
+    return cheerio.load(inputText).text()
+  },
 }
 
 const shortcodes = {
   media_image(media, width = media?.data?.width) {
-    if (media?.data?.type === 'gifv') {
+    if (media?.data?.type === 'gifv' || media?.data?.type === 'video') {
       return `<video controls width="${media.data.width}" height="${media.data.height}"><source  src="${media.data.original}" /></control>`
     }
     if (media?.data?.type === 'image') {

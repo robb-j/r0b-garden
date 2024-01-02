@@ -22,9 +22,9 @@ layout: html.njk
   <center-layout>
     <stack-layout>
       {% for slug in media %}
+      {% set media = collections.media | findBySlug(slug) %}
       <figure>
-        {% media_image collections.media | findBySlug(slug), 500 %}
-        <!--  -->
+        {% media_image media, 500 %}
         <figcaption>{{ media.content | safe }}</figcaption>
       </figure>
       {% endfor %}
