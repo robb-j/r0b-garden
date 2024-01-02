@@ -35,7 +35,10 @@ const filters = {
     }
     return Array.from(buckets.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([month, collection]) => ({ date: new Date(month), collection }))
+      .map(([month, collection]) => ({
+        date: new Date(month),
+        collection: collection.reverse(),
+      }))
       .reverse()
   },
   mastodonStatusLink(refs) {
