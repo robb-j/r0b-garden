@@ -28,7 +28,7 @@ dl:not([class]) > dd + dt {
 }
 .tune-title {
   font-weight: bold;
-  justify-self: flex-end;
+  align-self: flex-end;
 }
 .tune-description {
   font-style: italic;
@@ -53,4 +53,9 @@ dl:not([class]) > dd + dt {
 
 figure > img {
   margin: auto;
+}
+
+figure > video {
+  max-width: 100%;
+  height: auto;
 }

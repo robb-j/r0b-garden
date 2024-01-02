@@ -55,14 +55,24 @@ const filters = {
 }
 
 const shortcodes = {
-  media_image(media, width = media.data.width) {
-    const height = width * (media.data.height / media.data.width)
-    return `<img src="${media.data.original}" width="${width}" height="${height}">`
+  media_image(media, width = media?.data?.width) {
+    if (media?.data?.type === 'gifv') {
+      return `<video controls width="${media.data.width}" height="${media.data.height}"><source  src="${media.data.original}" /></control>`
+    }
+    if (media?.data?.type === 'image') {
+      const height = width * (media.data.height / media.data.width)
+      return `<img src="${media.data.original}" width="${width}" height="${height}">`
+    }
+    console.log('unknown media', media?.data?.type)
+    return ''
   },
   media_image_preview(media, width = media.data.width) {
-    const height = width * (media.data.height / media.data.width)
-    const src = media.data.preview ?? media.data.original
-    return `<img src="${src}" width="${width}" height="${height}">`
+    if (media?.data?.type === 'image') {
+      const height = width * (media.data.height / media.data.width)
+      const src = media.data.preview ?? media.data.original
+      return `<img src="${src}" width="${width}" height="${height}" loading="lazy">`
+    }
+    return ''
   },
 }
 

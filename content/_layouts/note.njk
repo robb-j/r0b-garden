@@ -37,16 +37,16 @@ layout: html.njk
             </cluster-layout>
           </header>
           
-          <reel-layout>
-            {% for slug in mediaSlugs %}
-            {% set media = collections.media | findBySlug(slug) %}
+          <!-- <reel-layout> -->
+            {% for slug in media %}
+            {% set m = collections.media | findBySlug(slug) %}
             <figure>
-              {% media_image media, 500 %}
+              {% media_image m, 500 %}
               <!--  -->
-              <figcaption>TODO: work out how to inline the media as the caption</figcaption>
+              <figcaption>{{ media.content | safe }}</figcaption>
             </figure>
             {% endfor %}
-          </reel-layout>
+          <!-- </reel-layout> -->
           
           <article class="flow">
             {{ content | safe }}

@@ -9,15 +9,13 @@ layout: html.njk
   {{ title }}
 </header>
 
-{% set media = collections.media | findBySlug(mediaSlug) %}
-
 <!-- TODO: make sure these are ordered correctly -->
 
 <main class="film">
   <center-layout>
     <stack-layout>
       <sidebar-layout>
-        {% media_image media, 200 %}
+        {% media_image collections.media | findBySlug(media[0]), 200 %}
         <dl>
           <dt>when</dt>
           <dd>{{ date | longDate }}</dd>

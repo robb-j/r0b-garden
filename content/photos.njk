@@ -19,11 +19,11 @@ layout: html.njk
   <center-layout max="92em">
     <grid-layout space="s-4" min="220px">
       {% for photo in collections.photo %}
-      {% for slug in photo.data.mediaSlugs %}
-      {% set media = collections.media | findBySlug(slug) %}
+      {% for slug in photo.data.media %}
+      {% set m = collections.media | findBySlug(slug) %}
       <a href="{{ photo.url }}">
         <frame-layout ratio="1:1">
-          {% media_image_preview media, 500 %}
+          {% media_image_preview m, 500 %}
         </frame-layout>
       </a>
       {% endfor %}

@@ -4,11 +4,12 @@ import 'dotenv/config'
 
 import fs from 'node:fs/promises'
 import { createWriteStream } from 'node:fs'
+import path from 'node:path'
 import process from 'node:process'
-import { Writable } from 'node:stream'
+import { Writable, Readable } from 'node:stream'
 import parseLinkHeader from 'parse-link-header'
 import Yaml from 'yaml'
-import * as cheerio from 'cheerio'
+import * as Minio from 'minio'
 
 import config from '../config.json' assert { type: 'json' }
 import {
@@ -23,7 +24,17 @@ import {
   getCardMedia,
   emplaceStatus,
   parseOpengraph,
+  findByRef,
+  loadMedia,
 } from '../utils.js'
+
+const minio = new Minio.Client({
+  accessKey: process.env.S3_ACCESS_KEY,
+  secretKey: process.env.S3_SECRET_KEY,
+  endPoint: process.env.S3_ENDPOINT,
+})
+
+const { S3_BUCKET, S3_CDN_URL } = process.env
 
 const cacheURL = new URL('../.cache/mastodon.json', import.meta.url)
 
@@ -104,7 +115,6 @@ const templates = {
         url: status.card?.url,
         title: status.card?.title,
         blurb: status.card?.description,
-        media: status.card?.image ? [getCardMedia(status.card).id] : [],
       },
     }
   },
@@ -115,7 +125,6 @@ const templates = {
       }),
       data: {
         ...statusFrontmatter(status),
-        media: status.media_attachments.map((a) => getAttachmentMedia(a).id),
         // TODO: map to "label"'s name ?'
         tags: status.tags
           .filter((t) => t.name !== 'notes')
@@ -130,7 +139,6 @@ const templates = {
       }),
       data: {
         ...statusFrontmatter(status),
-        media: status.media_attachments.map((a) => getAttachmentMedia(a).id),
       },
     }
   },
@@ -145,7 +153,6 @@ const templates = {
         title: status.card?.title,
         description: status.card?.description,
         provider: status.card?.provider_name,
-        media: status.card?.image ? [getCardMedia(status.card).id] : [],
       },
     }
   },
@@ -160,7 +167,10 @@ async function fetchCard(status) {
     const res = await fetch(status.card.url)
     if (!res.ok) throw new Error('Failed request: ' + res.statusText)
 
-    const { title, description, image } = parseOpengraph(await res.text())
+    const { title, description, image } = parseOpengraph(
+      status.card.url,
+      await res.text(),
+    )
 
     if (title) status.card.title = title
     if (description) status.card.description = description
@@ -168,15 +178,19 @@ async function fetchCard(status) {
 
     return true
   } catch (error) {
-    console.debug('fetchCard failed', error)
+    console.debug('fetchCard failed', error.message)
     return false
   }
+}
+
+function getDirectoryUrl(directory) {
+  return new URL(`../${directory}/`, import.meta.url)
 }
 
 async function fetchCache(userId) {
   const cache = { statuses: {}, media: {} }
 
-  const allMedia = new Map()
+  const allMedia = await loadMedia(getDirectoryUrl('content/media'))
 
   // Loop through each tag of each content type from config.json
   for (const [template, contentType] of Object.entries(mastodon.types)) {
@@ -192,29 +206,43 @@ async function fetchCache(userId) {
           await fetchCard(status)
         }
 
-        // Store the status & related template
-        cache.statuses[status.id] = { ...status, template }
-
-        // Convert attachments to media
-        for (const attachment of status.media_attachments) {
-          const media = getAttachmentMedia(attachment)
-          allMedia.set(media.id, media)
+        const meta = {
+          template,
+          media: [],
         }
 
         // Convert card to media
         if (status.card?.image) {
-          const media = getCardMedia(status.card)
-          allMedia.set(media.id, media)
+          let media = findByRef(allMedia, 'mastodon_card', status.id)
+          if (!media) {
+            media = getCardMedia(status)
+            media.id = nextPage(allMedia.keys()).toString()
+            allMedia.set(media.id, media)
+          }
+          meta.media.push(media.id)
         }
+
+        // Convert attachments to media
+        for (const attachment of status.media_attachments) {
+          let media = findByRef(allMedia, 'mastodon_media', attachment.id)
+          if (!media) {
+            media = getAttachmentMedia(attachment)
+            media.id = nextPage(allMedia.keys()).toString()
+            allMedia.set(media.id, media)
+          }
+          meta.media.push(media.id)
+        }
+
+        // Store the status & related template
+        cache.statuses[status.id] = { ...status, meta }
       }
     }
   }
 
-  for (const media of allMedia.values()) {
-    cache.media[media.id] = media
-
-    // TODO: move media to S3 if not exists
+  for (const [id, media] of allMedia.entries()) {
+    cache.media[id] = media
   }
+
   cache.threads = Object.fromEntries(rethread(cache.statuses))
 
   await mkdir(new URL('../.cache', import.meta.url))
@@ -223,12 +251,36 @@ async function fetchCache(userId) {
   return cache
 }
 
+async function emplaceS3Object(key, url) {
+  const stat = await minio.statObject(S3_BUCKET, key).catch(() => null)
+  if (stat) {
+    console.debug('skip object %o', key, url.toString())
+    return false
+  }
+
+  const res = await fetch(url)
+
+  if (!res || !res.body) {
+    console.error('Failed to download %o', url)
+    return false
+  }
+
+  // https://docs.digitalocean.com/reference/api/spaces-api/
+  await minio.putObject(S3_BUCKET, key, Readable.fromWeb(res.body), {
+    'x-amz-acl': 'public-read',
+    'Content-Type': res.headers.get('Content-Type'),
+    'Content-Length': res.headers.get('Content-Length'),
+  })
+
+  return true
+}
+
 async function processThreads(threads, dryRun) {
   // Pre load collections for each content-type
   const collections = {}
   for (const [template, contentType] of Object.entries(mastodon.types)) {
-    const baseUrl = new URL(`../${contentType.directory}/`, import.meta.url)
-    collections[template] = await loadCollection(baseUrl)
+    const base = getDirectoryUrl(contentType.directory)
+    collections[template] = await loadCollection(base)
   }
 
   // Sort the threads oldest first so older toots have lower identifiers
@@ -242,11 +294,13 @@ async function processThreads(threads, dryRun) {
   // Oldest toots come first so threads are appended to existing files
   for (const thread of oldestThreads) {
     for (const status of thread) {
-      const contentType = config.mastodon.types[status.template]
-      const pages = collections[status.template]
+      const { template } = status.meta
+
+      const contentType = config.mastodon.types[template]
+      const pages = collections[template]
 
       // Process the status using the related template
-      const { content, data } = templates[status.template](status)
+      const { content, data } = templates[template](status)
 
       await emplaceStatus(status, pages, {
         skip: (page) => {
@@ -259,8 +313,8 @@ async function processThreads(threads, dryRun) {
           // Create page
           const id = nextPage(pages.keys())
           const url = new URL(
-            `../${contentType.directory}/${id}.md`,
-            import.meta.url,
+            `${id}.md`,
+            getDirectoryUrl(contentType.directory),
           )
 
           // Add page to collection
@@ -333,8 +387,50 @@ async function writePage(page) {
   )
 }
 
-async function processMedia(media, dryRun) {
-  // TODO: ...
+async function processMedia(allMedia, dryRun) {
+  console.log('fetching media')
+
+  for (const [id, media] of Object.entries(allMedia)) {
+    console.log(' - ' + id)
+
+    const url = new URL(`${id}.md`, getDirectoryUrl('content/media'))
+
+    if (dryRun) {
+      console.log('create %o', url.toString(), media)
+    } else {
+      // Put "original" media into S3
+      const extension = path.extname(media.data.original)
+      await emplaceS3Object(
+        `mastodon/original/${id}${extension}`,
+        media.data.original,
+      )
+
+      // Rewrite media's "original" URL before writing to file
+      media.data.original = new URL(
+        `./mastodon/original/${id}${extension}`,
+        S3_CDN_URL,
+      ).toString()
+
+      if (media.data.preview) {
+        const extension = path.extname(media.data.preview)
+
+        // Put "preview" media into S3
+        await emplaceS3Object(
+          `mastodon/preview/${id}${extension}`,
+          media.data.preview,
+        )
+
+        // Rewrite media's "preview" URL before writing to file
+        media.data.preview = new URL(
+          `./mastodon/preview/${id}${extension}`,
+          S3_CDN_URL,
+        ).toString()
+      }
+
+      // Write the page to disk
+      await writePage({ url, data: media.data, content: media.content })
+    }
+  }
 }
 
 async function processLabels() {
@@ -356,11 +452,9 @@ async function main() {
     ? JSON.parse(await fs.readFile(cacheURL, 'utf8'))
     : await fetchCache(user.id)
 
-  // Process "cache"
+  await processMedia(cache.media, dryRun)
 
   await processThreads(cache.threads, dryRun)
-
-  await processMedia(cache.media, dryRun)
 
   // TODO: process labels
 }

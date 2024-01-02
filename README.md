@@ -31,3 +31,6 @@
 - get `tools/mastodon.js` to produce content in the desired format
 - get `tools/mastodon.js` to upload media to S3 bucket
 - better word than `media` is it plural or not?
+- parse code snippets from mastodon?
+- notes should show the `card.url`
+- clean out `_.md` files when happy with the format

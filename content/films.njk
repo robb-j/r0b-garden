@@ -29,7 +29,6 @@ layout: html.njk
             </tr>
           </thead>
           {% for item in month.collection %}
-          {% set media = collections.media | findBySlug(item.data.mediaSlug) %}
           <tr>
             <td>
               {{ item.page.date | dateOfMonth }}
@@ -40,7 +39,7 @@ layout: html.njk
             <td>
               <cluster-layout space="s-1" align="center">
                 <a href="{{ item.page.url }}">
-                  {% media_image media, 40 %}
+                  {% media_image collections.media | findBySlug(item.data.media[0]), 40 %}
                 </a>
                 <a href="{{ item.page.url }}">
                   {{ item.data.title }} →

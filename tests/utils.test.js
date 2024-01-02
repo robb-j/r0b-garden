@@ -286,12 +286,16 @@ describe('statusFrontmatter', () => {
       statusFrontmatter({
         id: 1,
         created_at: '2024-01-01 10:00:00',
+        meta: {
+          media: ['1.md', '2.md'],
+        },
       }),
       {
         refs: {
           mastodon_status: [1],
         },
         date: new Date('2024-01-01 10:00:00'),
+        media: ['1.md', '2.md'],
       },
       'should have the status reference and date in it',
     )
@@ -361,7 +365,6 @@ describe('getAttachmentMedia', () => {
         description: 'cool image',
       }),
       {
-        id: 'abcdef',
         data: {
           type: 'image',
           original: 'https://example.com/original/abcdef.jpg',
@@ -384,20 +387,25 @@ describe('getCardMedia', () => {
   it('converts to media', () => {
     assert.deepEqual(
       getCardMedia({
-        image: 'https://example.com/original/abcdef.jpg',
-        width: 400,
-        height: 300,
-        blurhash: 'plop',
-        title: 'cool image',
+        id: 1,
+        card: {
+          image: 'https://example.com/original/abcdef.jpg',
+          width: 400,
+          height: 300,
+          blurhash: 'plop',
+          title: 'cool image',
+        },
       }),
       {
-        id: 'abcdef',
         data: {
           type: 'image',
           original: 'https://example.com/original/abcdef.jpg',
           width: 400,
           height: 300,
           blurhash: 'plop',
+          refs: {
+            mastodon_card: [1],
+          },
         },
         content: 'cool image',
       },
@@ -409,65 +417,81 @@ describe('getCardMedia', () => {
 describe('parseOpengraph', () => {
   it('parses html', () => {
     assert.deepEqual(
-      parseOpengraph(`
-        <html>
-        <head>
-          <title>Example</title>
-          <meta name="description" content="About this website">
-        </head>
-        </html> 
-      `),
+      parseOpengraph(
+        'https://example.com',
+        `
+          <html>
+          <head>
+            <title>Example</title>
+            <meta name="description" content="About this website">
+          </head>
+          </html>
+        `,
+      ),
       {
         type: null,
         title: 'Example',
         description: 'About this website',
         image: null,
-        url: null,
+        url: 'https://example.com',
       },
       'should parse out standard html <meta> tags',
     )
   })
   it('parses opengraph', () => {
     assert.deepEqual(
-      parseOpengraph(`
-        <html>
-        <head>
-          <meta property="og:type" content="website">
-          <meta property="og:title" content="Example">
-          <meta property="og:description" content="About this website">
-          <meta property="og:image" content="https://example.com/opengraph.png">
-          <meta property="og:url" content="https://example.com">
-        </head>
-        </html> 
-      `),
+      parseOpengraph(
+        'https://example.com',
+        `
+          <html>
+          <head>
+            <meta property="og:type" content="website">
+            <meta property="og:title" content="Example">
+            <meta property="og:description" content="About this website">
+            <meta property="og:image" content="https://example.com/opengraph.png">
+            <meta property="og:url" content="https://example.com/page/">
+          </head>
+          </html>
+        `,
+      ),
       {
         type: 'website',
         title: 'Example',
         description: 'About this website',
         image: 'https://example.com/opengraph.png',
-        url: 'https://example.com',
+        url: 'https://example.com/page/',
       },
       'should parse out OpenGraph <meta> tags',
     )
   })
   it('parses twitter', () => {
     assert.deepEqual(
-      parseOpengraph(`
-        <html>
-        <head>
-          <meta name="twitter:title" content="Example">
-          <meta name="twitter:description" content="About this website">
-        </head>
-        </html> 
-      `),
+      parseOpengraph(
+        'https://example.com',
+        `
+          <html>
+          <head>
+            <meta name="twitter:title" content="Example">
+            <meta name="twitter:description" content="About this website">
+          </head>
+          </html>
+        `,
+      ),
       {
         type: null,
         title: 'Example',
         description: 'About this website',
         image: null,
-        url: null,
+        url: 'https://example.com',
       },
       'should parse out Twitter <meta> tags',
     )
+  })
+  it('rebases images', () => {
+    const result = parseOpengraph(
+      'https://example.com',
+      '<meta property="og:image" content="/opengraph.png">',
+    )
+    assert.equal(result.image, 'https://example.com/opengraph.png')
   })
 })

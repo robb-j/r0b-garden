@@ -23,10 +23,9 @@ layout: html.njk
         
         <stack-layout>
           {% for item in month.collection %}
-          {% set media = collections.media | findBySlug(item.data.mediaSlug) %}
-          <details class="tune">
+          <details class="tune" data-tune="{{ item.page.fileSlug }}">
             <summary>
-              {% media_image media, 120 %}
+              {% media_image collections.media | findBySlug(item.data.media[0]), 120 %}
               <p class="tune-title">{{ item.data.title }}</p>
               <p class="tune-description">{{ item.data.description }}</p>
             </summary>

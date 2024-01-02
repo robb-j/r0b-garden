@@ -78,7 +78,7 @@ export function rethread(statuses) {
 
 /**
   @param {string | URL} base
-  @returns {Promise<Map<string, { url: URL, content: string, data:any }>>}
+  @returns {Promise<Map<string, { url: URL, content: string, data: any }>>}
 */
 export async function loadCollection(base) {
   const files = new Map()
@@ -89,6 +89,35 @@ export async function loadCollection(base) {
     files.set(file, { url, content, data })
   }
   return files
+}
+
+/**
+  @param {string | URL} base
+  @returns {Promise<Map<string, { id: string, content: string, data: any }>>}
+*/
+export async function loadMedia(base) {
+  const files = new Map()
+
+  for (const file of await fs.readdir(base)) {
+    if (!file.endsWith('.md')) continue
+    const url = new URL(`./${file}`, base)
+    const id = file.replace(/\.md$/, '')
+    const { content, data } = matter(await fs.readFile(url, 'utf8'))
+    files.set(id, { id, content, data })
+  }
+
+  return files
+
+  //   // ~ Not sure what to have media IDs set as ATM
+  //   const collection = await loadCollection(getDirectoryUrl('content/media'))
+  //
+  //   const map = new Map()
+  //   for (const [filename, media] of collection) {
+  //     if (!filename.endsWith('.md')) continue
+  //     map.set(filename.replace('.md', ''), media)
+  //   }
+  //
+  //   return map
 }
 
 /** @param {Iterable<string>} names */
@@ -106,6 +135,14 @@ export function nextPage(names) {
 export function isRef(page, kind, id) {
   const refs = page.data?.refs?.[kind]
   return Array.isArray(refs) ? refs.includes(id) : false
+}
+
+// TODO: needs tests
+export function findByRef(map, kind, id) {
+  for (const page of map.values()) {
+    if (isRef(page, kind, id)) return page
+  }
+  return null
 }
 
 export function emplaceStatus(status, pages, operation = {}) {
@@ -163,6 +200,7 @@ export function statusFrontmatter(status) {
       mastodon_status: [status.id],
     },
     date: new Date(status.created_at),
+    media: status.meta?.media ?? undefined,
   }
 }
 
@@ -175,7 +213,6 @@ export function statusUrls(status) {
 
 export function getAttachmentMedia(attachment) {
   return {
-    id: path.basename(attachment.url, path.extname(attachment.url)),
     data: {
       type: attachment.type,
       original: attachment.url,
@@ -191,36 +228,43 @@ export function getAttachmentMedia(attachment) {
   }
 }
 
-export function getCardMedia(card) {
+export function getCardMedia(status) {
   return {
-    id: path.basename(card.image, path.extname(card.image)),
     data: {
       type: 'image',
-      original: card.image,
-      width: card.width,
-      height: card.height,
-      blurhash: card.blurhash,
+      original: status.card.image,
+      width: status.card.width,
+      height: status.card.height,
+      blurhash: status.card.blurhash,
+      refs: {
+        mastodon_card: [status.id],
+      },
     },
-    content: card.title,
+    content: status.card.title,
   }
 }
 
-export function parseOpengraph(inputText) {
+export function parseOpengraph(url, inputText) {
   const $ = cheerio.load(inputText)
+
+  let image = $('meta[property="og:image"]')?.attr('content')
+  if (image?.startsWith('/')) {
+    image = new URL(image, url).toString()
+  }
 
   return {
     type: $('meta[property="og:type"]')?.attr('content') ?? null,
     title:
       $('meta[name="twitter:title"]')?.attr('content') ??
       $('meta[property="og:title"]')?.attr('content') ??
-      $('head > title')?.text() ??
+      $('title')?.text() ??
       null,
     description:
       $('meta[name="twitter:description"]')?.attr('content') ??
       $('meta[property="og:description"]')?.attr('content') ??
       $('meta[name="description"]')?.attr('content') ??
       null,
-    image: $('meta[property="og:image"]')?.attr('content') ?? null,
-    url: $('meta[property="og:url"]')?.attr('content') ?? null,
+    url: $('meta[property="og:url"]')?.attr('content') ?? url,
+    image: image ?? null,
   }
 }
