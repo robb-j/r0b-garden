@@ -35,3 +35,4 @@
 - notes should show the `card.url`
 - clean out `_.md` files when happy with the format
 - rss feeds
+- film date changes aren't working
