@@ -34,3 +34,4 @@
 - parse code snippets from mastodon?
 - notes should show the `card.url`
 - clean out `_.md` files when happy with the format
+- rss feeds
