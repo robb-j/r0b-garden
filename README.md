@@ -10,6 +10,7 @@
 - [Nunjucks](https://mozilla.github.io/nunjucks/templating.html)
 - [Cheerio](https://cheerio.js.org/docs/api)
 - [Yaml](https://eemeli.org/yaml/#yaml)
+- [Sharp](https://sharp.pixelplumbing.com/)
 
 **thoughts**
 
@@ -36,3 +37,4 @@
 - clean out `_.md` files when happy with the format
 - rss feeds
 - film date changes aren't working
+- organise utils into a `lib/` folder of multiple files

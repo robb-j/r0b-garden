@@ -4,12 +4,9 @@ import 'dotenv/config'
 
 import fs from 'node:fs/promises'
 import { createWriteStream } from 'node:fs'
-import path from 'node:path'
 import process from 'node:process'
-import { Writable, Readable } from 'node:stream'
+import { Writable } from 'node:stream'
 import parseLinkHeader from 'parse-link-header'
-import Yaml from 'yaml'
-import * as Minio from 'minio'
 
 import config from '../config.json' assert { type: 'json' }
 import {
@@ -26,15 +23,9 @@ import {
   parseOpengraph,
   findByRef,
   loadMedia,
+  resolveMedia,
+  writePage,
 } from '../utils.js'
-
-const minio = new Minio.Client({
-  accessKey: process.env.S3_ACCESS_KEY,
-  secretKey: process.env.S3_SECRET_KEY,
-  endPoint: process.env.S3_ENDPOINT,
-})
-
-const { S3_BUCKET, S3_CDN_URL } = process.env
 
 const cacheURL = new URL('../.cache/mastodon.json', import.meta.url)
 
@@ -251,30 +242,6 @@ async function fetchCache(userId) {
   return cache
 }
 
-async function emplaceS3Object(key, url) {
-  const stat = await minio.statObject(S3_BUCKET, key).catch(() => null)
-  if (stat) {
-    console.debug('skip object %o', key, url.toString())
-    return false
-  }
-
-  const res = await fetch(url)
-
-  if (!res || !res.body) {
-    console.error('Failed to download %o', url)
-    return false
-  }
-
-  // https://docs.digitalocean.com/reference/api/spaces-api/
-  await minio.putObject(S3_BUCKET, key, Readable.fromWeb(res.body), {
-    'x-amz-acl': 'public-read',
-    'Content-Type': res.headers.get('Content-Type'),
-    'Content-Length': res.headers.get('Content-Length'),
-  })
-
-  return true
-}
-
 async function processThreads(threads, dryRun) {
   // Pre load collections for each content-type
   const collections = {}
@@ -350,43 +317,6 @@ async function processThreads(threads, dryRun) {
   console.log('skipped statuses', skipped)
 }
 
-function prettyYaml(data) {
-  const doc = Yaml.parseDocument(Yaml.stringify(data))
-
-  const refs = doc.get('refs')
-  if (refs && Yaml.isCollection(refs)) {
-    for (const item of refs.items) {
-      if (Yaml.isSeq(item.value)) {
-        item.value.flow = true
-
-        for (const id of item.value.items) {
-          if (Yaml.isScalar(id)) {
-            id.type = 'QUOTE_SINGLE'
-          }
-        }
-      }
-    }
-  }
-
-  const media = doc.get('media')
-  if (media && Yaml.isSeq(media)) {
-    media.flow = true
-  }
-
-  return doc
-    .toString({ singleQuote: true, flowCollectionPadding: false })
-    .trim()
-}
-
-// The page needs to be re-written each time because the frontmatter + content change
-async function writePage(page) {
-  await fs.writeFile(
-    page.url,
-    ['---', prettyYaml(page.data), '---', '', page.content].join('\n') + '\n',
-    'utf8',
-  )
-}
-
 async function processMedia(allMedia, dryRun) {
   console.log('fetching media')
 
@@ -398,34 +328,7 @@ async function processMedia(allMedia, dryRun) {
     if (dryRun) {
       console.log('create %o', url.toString(), media)
     } else {
-      // Put "original" media into S3
-      const extension = path.extname(media.data.original)
-      await emplaceS3Object(
-        `mastodon/original/${id}${extension}`,
-        media.data.original,
-      )
-
-      // Rewrite media's "original" URL before writing to file
-      media.data.original = new URL(
-        `./mastodon/original/${id}${extension}`,
-        S3_CDN_URL,
-      ).toString()
-
-      if (media.data.preview) {
-        const extension = path.extname(media.data.preview)
-
-        // Put "preview" media into S3
-        await emplaceS3Object(
-          `mastodon/preview/${id}${extension}`,
-          media.data.preview,
-        )
-
-        // Rewrite media's "preview" URL before writing to file
-        media.data.preview = new URL(
-          `./mastodon/preview/${id}${extension}`,
-          S3_CDN_URL,
-        ).toString()
-      }
+      await resolveMedia(media)
 
       // Write the page to disk
       await writePage({ url, data: media.data, content: media.content })

@@ -1,7 +1,20 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import process from 'node:process'
+import { Readable } from 'node:stream'
+
 import matter from 'gray-matter'
 import * as cheerio from 'cheerio'
+import { Client as Minio } from 'minio'
+import Yaml from 'yaml'
+
+const { S3_BUCKET, S3_CDN_URL } = process.env
+
+const minio = new Minio({
+  accessKey: process.env.S3_ACCESS_KEY,
+  secretKey: process.env.S3_SECRET_KEY,
+  endPoint: process.env.S3_ENDPOINT,
+})
 
 /**
   @typedef {object} EmplaceOperation
@@ -267,4 +280,90 @@ export function parseOpengraph(url, inputText) {
     url: $('meta[property="og:url"]')?.attr('content') ?? url,
     image: image ?? null,
   }
+}
+
+export async function resolveMedia(media) {
+  const originalPath = `mastodon/original/${media.id}${path.extname(
+    media.data.original,
+  )}`
+
+  // Put "original" media into S3
+  await putS3Object(originalPath, media.data.original)
+
+  // Rewrite media's "original" URL before writing to file
+  media.data.original = new URL('./' + originalPath, S3_CDN_URL).toString()
+
+  if (media.data.preview) {
+    const previewPath = `mastodon/preview/${media.id}${path.extname(
+      media.data.preview,
+    )}`
+
+    // Put "preview" media into S3
+    await putS3Object(previewPath, media.data.preview)
+
+    // Rewrite media's "preview" URL before writing to file
+    media.data.preview = new URL('./' + previewPath, S3_CDN_URL).toString()
+  }
+}
+
+export async function putS3Object(key, url) {
+  const stat = await minio.statObject(S3_BUCKET, key).catch(() => null)
+  if (stat) {
+    console.debug('skip object %o', key, url.toString())
+    return false
+  }
+
+  const res = await fetch(url)
+
+  if (!res || !res.body) {
+    console.error('Failed to download %o', url)
+    return false
+  }
+
+  // https://docs.digitalocean.com/reference/api/spaces-api/
+  await minio.putObject(S3_BUCKET, key, Readable.fromWeb(res.body), {
+    'x-amz-acl': 'public-read',
+    'Content-Type': res.headers.get('Content-Type'),
+    'Content-Length': res.headers.get('Content-Length'),
+  })
+
+  return true
+}
+
+// The page needs to be re-written each time because the front matter + content change
+// TODO: this API could be better
+export async function writePage(page) {
+  await fs.writeFile(
+    page.url,
+    ['---', prettyYaml(page.data), '---', '', page.content].join('\n') + '\n',
+    'utf8',
+  )
+}
+
+export function prettyYaml(data) {
+  const doc = Yaml.parseDocument(Yaml.stringify(data))
+
+  const refs = doc.get('refs')
+  if (refs && Yaml.isCollection(refs)) {
+    for (const item of refs.items) {
+      if (Yaml.isSeq(item.value)) {
+        item.value.flow = true
+
+        for (const id of item.value.items) {
+          if (Yaml.isScalar(id)) {
+            id.type = 'QUOTE_SINGLE'
+          }
+        }
+      }
+    }
+  }
+
+  const media = doc.get('media')
+  if (media && Yaml.isSeq(media)) {
+    media.flow = true
+  }
+
+  return doc
+    .toString({ singleQuote: true, flowCollectionPadding: false })
+    .trim()
 }
