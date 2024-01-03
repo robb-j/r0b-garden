@@ -178,10 +178,8 @@ function getDirectoryUrl(directory) {
   return new URL(`../${directory}/`, import.meta.url)
 }
 
-async function fetchCache(userId) {
+async function fetchCache(allMedia, userId) {
   const cache = { statuses: {}, media: {} }
-
-  const allMedia = await loadMedia(getDirectoryUrl('content/media'))
 
   // Loop through each tag of each content type from config.json
   for (const [template, contentType] of Object.entries(mastodon.types)) {
@@ -192,8 +190,10 @@ async function fetchCache(userId) {
       for await (const status of iterateUserHashtag(userId, tag)) {
         console.debug(' - ' + status.id)
 
-        if (status.card && !status.card.image) {
-          console.debug('   fetching %s', status.card.url)
+        let cardMedia = findByRef(allMedia, 'mastodon_card', status.id)
+
+        if (!cardMedia && status.card && !status.card.image) {
+          console.debug('   fetching card %s', status.card.url)
           await fetchCard(status)
         }
 
@@ -204,13 +204,12 @@ async function fetchCache(userId) {
 
         // Convert card to media
         if (status.card?.image) {
-          let media = findByRef(allMedia, 'mastodon_card', status.id)
-          if (!media) {
-            media = getCardMedia(status)
-            media.id = nextPage(allMedia.keys()).toString()
-            allMedia.set(media.id, media)
+          if (!cardMedia) {
+            cardMedia = getCardMedia(status)
+            cardMedia.id = nextPage(allMedia.keys()).toString()
+            allMedia.set(cardMedia.id, cardMedia)
           }
-          meta.media.push(media.id)
+          meta.media.push(cardMedia.id)
         }
 
         // Convert attachments to media
@@ -317,10 +316,11 @@ async function processThreads(threads, dryRun) {
   console.log('skipped statuses', skipped)
 }
 
+/** @param {Map<string, any>} allMedia */
 async function processMedia(allMedia, dryRun) {
   console.log('fetching media')
 
-  for (const [id, media] of Object.entries(allMedia)) {
+  for (const [id, media] of allMedia) {
     console.log(' - ' + id)
 
     const url = new URL(`${id}.md`, getDirectoryUrl('content/media'))
@@ -340,6 +340,15 @@ async function processLabels() {
   // ... ???
 }
 
+// Create a map with the values that are in mapB but not mapA
+function mapDiff(mapA, mapB) {
+  const keysA = new Set(mapA.keys())
+  const newEntries = Array.from(mapB.entries()).filter(
+    ([k, _v]) => !keysA.has(k),
+  )
+  return new Map(newEntries)
+}
+
 async function main() {
   const user = await lookupUser(mastodon.url, mastodon.username)
 
@@ -351,11 +360,15 @@ async function main() {
     if (!tpl) throw new Error(`Missing template '${template}'`)
   }
 
+  const allMedia = await loadMedia(getDirectoryUrl('content/media'))
+  const oldMedia = new Map(allMedia)
+
   const cache = fromCache
     ? JSON.parse(await fs.readFile(cacheURL, 'utf8'))
-    : await fetchCache(user.id)
+    : await fetchCache(allMedia, user.id)
 
-  await processMedia(cache.media, dryRun)
+  const newMedia = mapDiff(oldMedia, allMedia)
+  await processMedia(newMedia, dryRun)
 
   await processThreads(cache.threads, dryRun)
 
