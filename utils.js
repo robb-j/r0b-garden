@@ -10,11 +10,13 @@ import Yaml from 'yaml'
 
 const { S3_BUCKET, S3_CDN_URL } = process.env
 
-const minio = new Minio({
-  accessKey: process.env.S3_ACCESS_KEY,
-  secretKey: process.env.S3_SECRET_KEY,
-  endPoint: process.env.S3_ENDPOINT,
-})
+function minio() {
+  return new Minio({
+    accessKey: process.env.S3_ACCESS_KEY,
+    secretKey: process.env.S3_SECRET_KEY,
+    endPoint: process.env.S3_ENDPOINT,
+  })
+}
 
 /**
   @typedef {object} EmplaceOperation
@@ -307,7 +309,9 @@ export async function resolveMedia(media) {
 }
 
 export async function putS3Object(key, url) {
-  const stat = await minio.statObject(S3_BUCKET, key).catch(() => null)
+  const s3 = minio()
+  
+  const stat = await s3.statObject(S3_BUCKET, key).catch(() => null)
   if (stat) {
     console.debug('skip object %o', key, url.toString())
     return false
@@ -321,7 +325,7 @@ export async function putS3Object(key, url) {
   }
 
   // https://docs.digitalocean.com/reference/api/spaces-api/
-  await minio.putObject(S3_BUCKET, key, Readable.fromWeb(res.body), {
+  await s3.putObject(S3_BUCKET, key, Readable.fromWeb(res.body), {
     'x-amz-acl': 'public-read',
     'Content-Type': res.headers.get('Content-Type'),
     'Content-Length': res.headers.get('Content-Length'),
