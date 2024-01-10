@@ -310,7 +310,7 @@ export async function resolveMedia(media) {
 
 export async function putS3Object(key, url) {
   const s3 = minio()
-  
+
   const stat = await s3.statObject(S3_BUCKET, key).catch(() => null)
   if (stat) {
     console.debug('skip object %o', key, url.toString())

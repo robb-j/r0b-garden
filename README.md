@@ -14,8 +14,6 @@
 
 **thoughts**
 
-- Should posts be numerically identified, should it be some sort of hash, what makes sense most for curate-ability?
-- Centralise "tool" configuration into `config.json`?
 - What happens to markdown code blocks in toots?
 - What can I use the blur hash for?
 
@@ -30,8 +28,6 @@
 
 - maybe try WebC
 - get `tools/mastodon.js` to produce content in the desired format
-- get `tools/mastodon.js` to upload media to S3 bucket
-- better word than `media` is it plural or not?
 - parse code snippets from mastodon?
 - notes should show the `card.url`
 - clean out `_.md` files when happy with the format

@@ -8,11 +8,11 @@
         "directory": "content/films"
       },
       "note": {
-        "hashtags": ["notes"],
+        "hashtags": ["notes", "til"],
         "directory": "content/notes"
       },
       "photo": {
-        "hashtags": ["photos"],
+        "hashtags": ["photos", "photography"],
         "directory": "content/photos"
       },
       "tune": {
