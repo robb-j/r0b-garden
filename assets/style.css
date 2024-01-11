@@ -25,7 +25,9 @@ dl:not([class]) > dd + dt {
 .tune summary img {
   grid-column: 1 / 2;
   grid-row: 1 / 3;
+  border-radius: var(--s-4);
 }
+
 .tune-title {
   font-weight: bold;
   align-self: flex-end;
@@ -39,6 +41,9 @@ dl:not([class]) > dd + dt {
 }
 
 /* === */
+.photos {
+  padding-inline: 0;
+}
 .photos header {
   margin-bottom: var(--s1);
 }

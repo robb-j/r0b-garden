@@ -29,13 +29,26 @@ layout: html.njk
             <h1>my notes ... on things</h1>
           </header>
           
-          <ul>
-            {% for note in collections.note %}
-            <li>
-              <a href="{{ note.url }}">{{ note | pickTitle }} →</a>
-            </li>
-            {% endfor %}
-          </ul>
+          {% for month in collections.note | groupByMonth %}
+          <section class="flow">
+            <h2>{{ month.date | monthAndYear }}</h2>
+            <ul>
+              {% for note in month.collection %}
+              {% set labels = collections.label | tagsToLabels(note.data.tags) %}
+              <li>
+                <a href="{{ note.url }}">
+                  {{ note | pickTitle }}
+                  {% for label in labels %}
+                  #{{ label.fileSlug }}
+                  {% endfor %}
+                  →
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </section>
+          {% endfor %}
+          
         </stack-layout>
       </center-layout>
     </div>

@@ -62,12 +62,15 @@ const filters = {
   },
 }
 
+const videoTypes = new Set(['gifv', 'video'])
+const imageTypes = new Set(['image'])
+
 const shortcodes = {
   media_image(media, width = media?.data?.width) {
-    if (media?.data?.type === 'gifv' || media?.data?.type === 'video') {
+    if (videoTypes.has(media?.data?.type)) {
       return `<video controls width="${media.data.width}" height="${media.data.height}"><source  src="${media.data.original}" /></control>`
     }
-    if (media?.data?.type === 'image') {
+    if (imageTypes.has(media?.data?.type)) {
       const height = width * (media.data.height / media.data.width)
       return `<img src="${media.data.original}" width="${width}" height="${height}">`
     }
@@ -75,10 +78,13 @@ const shortcodes = {
     return ''
   },
   media_image_preview(media, width = media.data.width) {
-    if (media?.data?.type === 'image') {
+    if (
+      imageTypes.has(media?.data?.type) ||
+      videoTypes.has(media?.data?.type)
+    ) {
       const height = width * (media.data.height / media.data.width)
       const src = media.data.preview ?? media.data.original
-      return `<img src="${src}" width="${width}" height="${height}" loading="lazy">`
+      return `<img src="${src}" width="${width}" height="${height}" loading="lazy" autoplay controls poster=${media.data.preview}>`
     }
     return ''
   },

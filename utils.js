@@ -100,7 +100,7 @@ export async function loadCollection(base) {
   for (const file of await fs.readdir(base)) {
     if (!file.endsWith('.md')) continue
     const url = new URL(`./${file}`, base)
-    const { content, data } = matter(await fs.readFile(url, 'utf8'))
+    const { content = '', data = {} } = matter(await fs.readFile(url, 'utf8'))
     files.set(file, { url, content, data })
   }
   return files
