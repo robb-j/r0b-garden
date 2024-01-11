@@ -178,12 +178,14 @@ export function emplaceStatus(status, pages, operation = {}) {
 
 /**
   @typedef {object} StatusTextOptions
-  @property {string[] | undefined} stripUrls
+  @property {string[]} [stripUrls]
+  @param {string[]} [trailingTags]
 */
 
 /**
   @param {string} inputText
   @param {StatusTextOptions} options
+  
 */
 export function statusText(inputText, options = {}) {
   const $ = cheerio.load(inputText)
@@ -200,11 +202,40 @@ export function statusText(inputText, options = {}) {
     }
   }
 
-  // TODO: clean Mastodon invisibles ?
+  // TODO: doesn't work
+  for (const p of body.find('p')) {
+    const isJustTags = p.children.every(
+      ((c) => $(c).name === 'a' && c.attribs.rel === 'tag') ||
+        (c.name === 'text' && !c.data.trim()),
+    )
+    if (isJustTags) {
+      $(p).remove()
+    }
+  }
+
+  // TODO: doesn't work great
+  if (options.trailingTags) {
+    for (const tag of options.trailingTags) {
+      for (const a of body.find('a:last-child[rel=tag]')) {
+        if ($(a).text().toLowerCase() === '#' + tag) {
+          $(a).remove()
+        }
+      }
+    }
+  }
+
+  // TODO: re-write hyem.tech/tags/:tag URLs
+
+  // clean Mastodon invisibles & ellipsis
+  for (const node of body.find('.invisible,.ellipsis')) {
+    $(node).replaceWith($(node).text())
+  }
 
   for (const p of body.find('p')) {
     if (p.children.length === 0) $(p).remove()
   }
+
+  // TODO: add a \n between paragraphs (or two)
 
   return body.html()
 }
@@ -221,7 +252,7 @@ export function statusFrontmatter(status) {
 
 export function statusUrls(status) {
   const urls = []
-  if (status.tags) urls.push(...status.tags.map((t) => t.url))
+  // if (status.tags) urls.push(...status.tags.map((t) => t.url))
   if (status.card) urls.push(status.card.url)
   return urls.map((u) => u.toLocaleLowerCase())
 }

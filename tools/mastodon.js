@@ -99,6 +99,7 @@ const templates = {
     return {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
+        trailingTags: ['review'],
       }),
       data: {
         ...statusFrontmatter(status),
@@ -112,6 +113,7 @@ const templates = {
     return {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
+        trailingTags: ['notes'],
       }),
       data: {
         ...statusFrontmatter(status),
@@ -126,6 +128,7 @@ const templates = {
     return {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
+        trailingTags: ['photos', 'photography'],
       }),
       data: {
         ...statusFrontmatter(status),
@@ -136,6 +139,7 @@ const templates = {
     return {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
+        trailingTags: ['nowplaying'],
       }),
       data: {
         ...statusFrontmatter(status),
