@@ -3,27 +3,26 @@
 import 'dotenv/config'
 
 import fs from 'node:fs/promises'
-import { createWriteStream } from 'node:fs'
+import path from 'node:path'
 import process from 'node:process'
-import { Writable } from 'node:stream'
 import parseLinkHeader from 'parse-link-header'
 
 import config from '../config.json' assert { type: 'json' }
 import {
-  statusVisitor,
-  loadCollection,
-  nextPage,
-  statusText,
-  statusUrls,
-  statusFrontmatter,
-  rethread,
+  emplaceStatus,
+  findByRef,
   getAttachmentMedia,
   getCardMedia,
-  emplaceStatus,
-  parseOpengraph,
-  findByRef,
+  loadCollection,
   loadMedia,
+  nextPage,
+  parseOpengraph,
   resolveMedia,
+  rethread,
+  statusFrontmatter,
+  statusText,
+  statusUrls,
+  statusVisitor,
   writePage,
 } from '../utils.js'
 
@@ -241,12 +240,13 @@ async function fetchCache(allMedia, userId) {
   return cache
 }
 
-async function processThreads(threads, dryRun) {
+async function processThreads(threads, { dryRun, overwrite }) {
   // Pre load collections for each content-type
   const collections = {}
   for (const [template, contentType] of Object.entries(mastodon.types)) {
     const base = getDirectoryUrl(contentType.directory)
-    collections[template] = await loadCollection(base)
+    const pages = await loadCollection(base)
+    collections[template] = pages
   }
 
   // Sort the threads oldest first so older toots have lower identifiers
@@ -269,51 +269,86 @@ async function processThreads(threads, dryRun) {
       const { content, data } = templates[template](status)
 
       await emplaceStatus(status, pages, {
-        skip: (page) => {
-          if (dryRun) {
+        skip: async (page) => {
+          if (overwrite) {
+            const isFirst = page.data.refs?.mastodon_status?.[0] === status.id
+            page.data.refs.mastodon_status = [status.id]
+
+            if (isFirst) {
+              await insertPage(
+                getPageId(page.url),
+                pages,
+                contentType,
+                content,
+                page.data,
+                dryRun,
+              )
+            } else {
+              await updatePage(status, page, content, dryRun)
+            }
+          } else if (dryRun) {
             console.log('skip status=%o', status.id, page.url)
-          }
-          skipped++
+          } else skipped++
         },
-        insert: async () => {
-          // Create page
-          const id = nextPage(pages.keys())
-          const url = new URL(
-            `${id}.md`,
-            getDirectoryUrl(contentType.directory),
-          )
-
-          // Add page to collection
-          const page = { url, content, data }
-          pages.set(`${id}.md`, page)
-
-          if (dryRun) {
-            console.log('create %o %O\n%s\n', url.toString(), data, content)
-          } else {
-            await writePage(page)
-          }
-        },
-        update: async (page) => {
-          // Update the page
-          page.content += '\n\n' + content
-          page.data.refs.mastodon_status.push(status.id)
-
-          if (dryRun) {
-            console.log(
-              'update %o %O\n%s\n',
-              page.url.toString(),
-              data,
-              content,
-            )
-          } else {
-            await writePage(page)
-          }
-        },
+        insert: () =>
+          insertPage(
+            nextPage(pages.keys()),
+            pages,
+            contentType,
+            content,
+            data,
+            dryRun,
+          ),
+        update: (page) => updatePage(status, page, content, dryRun),
       })
     }
   }
 
   console.log('skipped statuses', skipped)
+}
+
+/** @param {URL} url */
+function getPageId(url) {
+  return path.basename(url.pathname).replace('.md', '')
+}
+
+/**
+  @param {Map<string, any>} pages
+  @param {{ directory: string }} contentType
+  @param {string} content
+  @param {any} data
+  @param {boolean} dryRun
+  */
+async function insertPage(id, pages, contentType, content, data, dryRun) {
+  const url = new URL(`${id}.md`, getDirectoryUrl(contentType.directory))
+
+  // Add page to collection
+  const page = { url, content, data }
+  pages.set(`${id}.md`, page)
+
+  if (dryRun) {
+    console.log('create %o %O\n%s\n', url.toString(), data, content)
+  } else {
+    await writePage(page)
+  }
+}
+/**
+  @param {Map<string, any>} pages
+  @param {string} directory
+  @param {string} content
+  @param {any} data
+  @param {boolean} dryRun
+  */
+async function updatePage(status, page, content, dryRun) {
+  // Update the page
+  page.content += '\n\n' + content
+  page.data.refs.mastodon_status.push(status.id)
+
+  if (dryRun) {
+    console.log('update %o %O\n%s\n', page.url.toString(), content)
+  } else {
+    await writePage(page)
+  }
 }
 
 /** @param {Map<string, any>} allMedia */
@@ -354,6 +389,7 @@ async function main() {
 
   const fromCache = process.argv.includes('--cached')
   const dryRun = process.argv.includes('--dry-run')
+  const overwrite = process.argv.includes('--overwrite')
 
   for (const template of Object.keys(mastodon.types)) {
     const tpl = templates[template]
@@ -370,7 +406,7 @@ async function main() {
   const newMedia = mapDiff(oldMedia, allMedia)
   await processMedia(newMedia, dryRun)
 
-  await processThreads(cache.threads, dryRun)
+  await processThreads(cache.threads, { dryRun, overwrite })
 
   // TODO: process labels
 }
@@ -400,25 +436,6 @@ async function* iterateUserHashtag(userId, tag) {
     )
     yield* visit(...ancestors, ...descendants)
   }
-}
-
-//
-// === OLD STUFF ===
-//
-
-async function downloadImage(media) {
-  console.log('Download image', media.id)
-  const res = await fetch(media.url)
-
-  if (!res || !res.body) {
-    console.error('Failed to download %o', media.url)
-    return
-  }
-
-  const stream = createWriteStream(
-    new URL('../' + getImagePath(media), import.meta.url),
-  )
-  res.body.pipeTo(Writable.toWeb(stream))
 }
 
 main().catch((error) => console.error('Mastodon failed', error))
