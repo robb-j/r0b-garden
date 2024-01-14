@@ -7,7 +7,6 @@ import path from 'node:path'
 import process from 'node:process'
 import parseLinkHeader from 'parse-link-header'
 
-import config from '../config.json' assert { type: 'json' }
 import {
   emplaceStatus,
   findByRef,
@@ -25,6 +24,10 @@ import {
   statusVisitor,
   writePage,
 } from '../utils.js'
+
+const config = JSON.parse(
+  await fs.readFile(new URL('../config.json', import.meta.url)),
+)
 
 const cacheURL = new URL('../.cache/mastodon.json', import.meta.url)
 
@@ -94,12 +97,15 @@ function mkdir(path) {
   return fs.mkdir(path, { recursive: true })
 }
 
+// const tagUrl = (tag) => `/notes/tag/${tag}`
+
 const templates = {
   film(status) {
     return {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
         trailingTags: ['review'],
+        // tagUrl,
       }),
       data: {
         ...statusFrontmatter(status),
@@ -114,6 +120,7 @@ const templates = {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
         trailingTags: ['notes'],
+        // tagUrl,
       }),
       data: {
         ...statusFrontmatter(status),
@@ -129,6 +136,7 @@ const templates = {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
         trailingTags: ['photos', 'photography'],
+        // tagUrl,
       }),
       data: {
         ...statusFrontmatter(status),
@@ -140,6 +148,7 @@ const templates = {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
         trailingTags: ['nowplaying'],
+        // tagUrl,
       }),
       data: {
         ...statusFrontmatter(status),

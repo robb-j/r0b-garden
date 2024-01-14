@@ -1,3 +1,5 @@
+@import './dracula.css';
+
 /* NOTE: not in current version of labcoat */
 dl:not([class]) dt {
   font-weight: 600;
@@ -55,14 +57,18 @@ dl:not([class]) > dd + dt {
 }
 .photo figure > img {
   width: 100%;
-  height: auto;
 }
 
 figure > img {
   margin: auto;
+  height: auto;
 }
 
 figure > video {
   max-width: 100%;
   height: auto;
+}
+
+summary dt {
+  display: inline-block;
 }

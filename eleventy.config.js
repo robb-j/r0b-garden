@@ -1,6 +1,7 @@
 import 'dotenv/config'
 
 import { eleventyAlembic } from '@openlab/alembic/11ty.cjs'
+import pluginRss from '@11ty/eleventy-plugin-rss'
 import markdown from 'markdown-it'
 import markdownAnchor from 'markdown-it-anchor'
 import syntaxHighlight from '@11ty/eleventy-plugin-syntaxhighlight'
@@ -94,8 +95,10 @@ export default function (eleventyConfig) {
   eleventyConfig.addPlugin(syntaxHighlight)
   eleventyConfig.addPlugin(eleventyAlembic, { useLabcoat: true })
   eleventyConfig.addPlugin(datesPlugin)
+  eleventyConfig.addPlugin(pluginRss)
+  eleventyConfig.addPlugin(syntaxHighlight)
 
-  const md = markdown({ html: true })
+  const md = markdown({ linkify: true })
   md.use(markdownAnchor)
   eleventyConfig.setLibrary('md', md)
 

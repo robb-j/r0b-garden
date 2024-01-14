@@ -1,0 +1,55 @@
+---
+layout: html.njk
+pagination:
+  data: collections.label
+  size: 1
+  alias: label
+permalink: "/notes/tag/{{ label.fileSlug }}/"
+---
+
+{% set title = label.data.title or label.fileSlug %}
+
+<header>
+  <a href="/">{{ site.title }}</a>
+  /
+  <a href="/notes/">notes</a>
+  /
+  {{ title }}
+</header>
+
+<main>
+  <sidebar-layout>
+  <nav>
+    <p>...</p>
+  </nav>
+  <div>
+    <center-layout>
+      <stack-layout>
+        <header class="flow">
+          <h1>my notes on ... #{{ title }}</h1>
+        </header>
+        
+        <!-- TODO: merge this with the logic from "notes.njk" -->
+        {% for month in collections['label:' + label.fileSlug] | groupByMonth %}
+        <section class="flow">
+          <h2>{{ month.date | monthAndYear }}</h2>
+          <ul>
+            {% for note in month.collection %}
+            {% set labels = collections.label | tagsToLabels(note.data.tags) %}
+            <li>
+              <a href="{{ note.url }}">
+                {{ note | pickTitle }}
+                {% for label in labels %}
+                #{{ label.fileSlug }}
+                {% endfor %}
+                →
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endfor %}
+      </stack-layout>
+    </center-layout>
+  </div>
+</main>

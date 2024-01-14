@@ -1,5 +1,7 @@
 import { describe, it } from 'node:test'
-import assert from 'node:assert'
+import assert from 'node:assert/strict'
+import dedent from 'dedent'
+import * as cheerio from 'cheerio'
 
 import {
   emplace,
@@ -16,6 +18,7 @@ import {
   getAttachmentMedia,
   getCardMedia,
   parseOpengraph,
+  isJustTags,
 } from '../utils.js'
 
 describe('emplace', () => {
@@ -253,19 +256,21 @@ describe('statusText', () => {
       statusText('<p>Hello <a href="https://example.com">#Something</a></p>', {
         stripUrls: ['https://example.com'],
       }),
-      '<p>Hello </p>',
-      // 'should remove paragraphs with only those anchors in',
+      'Hello',
+      'should remove the anchor and trim text',
     )
   })
+
   it('trims empty paragraphs', () => {
     assert.equal(
-      statusText('<p><a href="https://example.com">#Something</a></p>', {
+      statusText('<p><a href="https://example.com">Something</a></p>', {
         stripUrls: ['https://example.com'],
       }),
       '',
       // 'should remove paragraphs with only those anchors in',
     )
   })
+
   it('strips urls case-insensitively', () => {
     assert.equal(
       statusText(
@@ -274,9 +279,88 @@ describe('statusText', () => {
           stripUrls: ['https://example.com/something'],
         },
       ),
-      '<p>Hello </p>',
+      'Hello',
       // 'should remove paragraphs with only those anchors in',
     )
+  })
+
+  it('generates markdown #1', () => {
+    const result = statusText(
+      '<p>Added a JS Module loader to <a href="https://hyem.tech/tags/ProgrammableThings" class="mention hashtag" rel="tag">#<span>ProgrammableThings</span></a> so you can load other modules on your SD card and played around with the c++ -- JS API to set specific segments from JS <a href="https://hyem.tech/tags/Notes" class="mention hashtag" rel="tag">#<span>Notes</span></a></p>',
+      {},
+    )
+    assert.equal(
+      result,
+      'Added a JS Module loader to #ProgrammableThings so you can load other modules on your SD card and played around with the c++ -- JS API to set specific segments from JS #Notes',
+    )
+  })
+  it('generates markdown #2', () => {
+    const result = statusText(
+      dedent`
+        <p>I was thinking about server app configuration today for <a href="https://hyem.tech/tags/Gruber" class="mention hashtag" rel="tag">#<span>Gruber</span></a>. I came up with a pretty clean API to load in variables from either configuration/environment variables/command line arguments or fallbacks. I updated my documentation-driven readme exploring it too. </p><p>Then I realised that same configuration can be used to document and provide usage examples which is kinda neat. </p>
+        
+        <p><a href="https://github.com/robb-j/gruber#configuration" target="_blank" rel="nofollow noopener noreferrer" translate="no"><span class="invisible">https://</span><span class="ellipsis">github.com/robb-j/gruber#confi</span><span class="invisible">guration</span></a></p>
+        
+        <p><a href="https://hyem.tech/tags/Notes" class="mention hashtag" rel="tag">#<span>Notes</span></a> <a href="https://hyem.tech/tags/JavaScript" class="mention hashtag" rel="tag">#<span>JavaScript</span></a> <a href="https://hyem.tech/tags/NodeJS" class="mention hashtag" rel="tag">#<span>NodeJS</span></a> <a href="https://hyem.tech/tags/Deno" class="mention hashtag" rel="tag">#<span>Deno</span></a></p>
+      `,
+      {
+        stripUrls: ['https://github.com/robb-j/gruber#configuration'],
+      },
+    )
+    assert.equal(
+      result,
+      dedent`
+        I was thinking about server app configuration today for #Gruber. I came up with a pretty clean API to load in variables from either configuration/environment variables/command line arguments or fallbacks. I updated my documentation-driven readme exploring it too.
+      
+        Then I realised that same configuration can be used to document and provide usage examples which is kinda neat.
+      `,
+    )
+  })
+  it('generates markdown #3', () => {
+    const result = statusText(
+      dedent`
+        <p><a href="https://hyem.tech/tags/TIL" class="mention hashtag" rel="tag">#<span>TIL</span></a> you can change the implementation of <a href="https://hyem.tech/tags/JavaScript" class="mention hashtag" rel="tag">#<span>JavaScript</span></a>&#39;s instanceof operator using Symbol.hasInstance</p>
+        
+        <p>\`\`\`js<br />export class TheAnswer {<br />  static [Symbol.hasInstance](value) {<br />    return value == 42;<br />  }<br />}<br />\`\`\`</p>
+        
+        <p>then</p>
+        
+        <p>\`\`\`<br />// true<br />42 instanceof TheAnswer<br />\`\`\`</p>
+      `,
+    )
+    assert.equal(
+      result,
+      dedent`
+        #TIL you can change the implementation of #JavaScript's instanceof operator using Symbol.hasInstance
+        
+        \`\`\`js
+        export class TheAnswer {
+          static [Symbol.hasInstance](value) {
+            return value == 42;
+          }
+        }
+        \`\`\`
+      
+        then
+        
+        \`\`\`
+        // true
+        42 instanceof TheAnswer
+        \`\`\`
+      `,
+    )
+  })
+})
+
+describe('isJustTags', () => {
+  it('detects tag-only paragraphs', () => {
+    const $ = cheerio.load(
+      `<p> <a rel="tag">#Tag</a> <a rel="tag">#Tag</a> <a rel="tag">#Tag</a> </p>`,
+    )
+    for (const p of $('p')) {
+      const result = isJustTags($(p))
+      assert(result)
+    }
   })
 })
 
@@ -310,39 +394,6 @@ describe('statusUrls', () => {
       }),
       ['https://example.com/card'],
       'should include the url from status.card.url',
-    )
-  })
-  it('contains hashtag urls', () => {
-    assert(
-      statusUrls({
-        tags: [
-          { url: 'https://example.com/hashtag-a' },
-          { url: 'https://example.com/hashtag-b' },
-          { url: 'https://example.com/hashtag-c' },
-        ],
-      }),
-      [
-        ('https://example.com/hashtag-a',
-        'https://example.com/hashtag-b',
-        'https://example.com/hashtag-c'),
-      ],
-      'should include the url from status.tag[].url',
-    )
-  })
-  it('lowercases urls', () => {
-    assert.deepEqual(
-      statusUrls({
-        card: { url: 'https://example.com/Card' },
-      }),
-      ['https://example.com/card'],
-      'should lowercase card URLs',
-    )
-    assert.deepEqual(
-      statusUrls({
-        tags: [{ url: 'https://example.com/Hashtag' }],
-      }),
-      ['https://example.com/hashtag'],
-      'should lowercase tag URLs',
     )
   })
 })

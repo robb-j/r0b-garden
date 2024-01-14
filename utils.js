@@ -176,6 +176,25 @@ export function emplaceStatus(status, pages, operation = {}) {
   return operation.insert?.(status)
 }
 
+/** @param {import("cheerio").Cheerio} node */
+export function isJustTags(node) {
+  for (const child of node.contents()) {
+    if (child.type === 'text' && !child.data.trim()) {
+      continue
+    }
+    if (
+      child.type === 'tag' &&
+      child.name === 'a' &&
+      child.attribs.rel === 'tag'
+    ) {
+      continue
+    }
+
+    return false
+  }
+  return true
+}
+
 /**
   @typedef {object} StatusTextOptions
   @property {string[]} [stripUrls]
@@ -185,59 +204,51 @@ export function emplaceStatus(status, pages, operation = {}) {
 /**
   @param {string} inputText
   @param {StatusTextOptions} options
-  
 */
 export function statusText(inputText, options = {}) {
   const $ = cheerio.load(inputText)
 
-  const body = $('body')
+  function textify($, node) {
+    if (node.type === 'tag' && node.name === 'br') return '\n'
+    if (
+      node.type === 'tag' &&
+      node.name === 'a' &&
+      node.attribs.rel === 'tag' &&
+      options.tagUrl
+    ) {
+      const tag = path.basename(node.attribs.href).toLowerCase()
+      return `[${$(node).text()}](${options.tagUrl(tag)})`
+    }
+    return $(node).text()
+  }
 
   if (options.stripUrls) {
     const urls = new Set(options.stripUrls)
 
-    for (const anchor of body.find('a')) {
+    // If an anchor
+    for (const anchor of $('a')) {
       if (urls.has(anchor.attribs.href?.toLocaleLowerCase())) {
         $(anchor).remove()
       }
     }
   }
 
-  // TODO: doesn't work
-  for (const p of body.find('p')) {
-    const isJustTags = p.children.every(
-      ((c) => $(c).name === 'a' && c.attribs.rel === 'tag') ||
-        (c.name === 'text' && !c.data.trim()),
-    )
-    if (isJustTags) {
-      $(p).remove()
-    }
-  }
-
-  // TODO: doesn't work great
-  if (options.trailingTags) {
-    for (const tag of options.trailingTags) {
-      for (const a of body.find('a:last-child[rel=tag]')) {
-        if ($(a).text().toLowerCase() === '#' + tag) {
-          $(a).remove()
-        }
-      }
-    }
-  }
-
-  // TODO: re-write hyem.tech/tags/:tag URLs
-
-  // clean Mastodon invisibles & ellipsis
-  for (const node of body.find('.invisible,.ellipsis')) {
-    $(node).replaceWith($(node).text())
-  }
-
-  for (const p of body.find('p')) {
+  // Remove paragraphs that are just hashtags or empty ones
+  for (const p of $('p')) {
+    if (isJustTags($(p))) $(p).remove()
+    // if ($(p).text().trim() === '') $(p).remove()
     if (p.children.length === 0) $(p).remove()
   }
 
-  // TODO: add a \n between paragraphs (or two)
-
-  return body.html()
+  // Convert each paragraph into markdown and make them into markdown paragraphs
+  return Array.from($('p'))
+    .map((p) =>
+      Array.from($(p).contents())
+        .map((n) => textify($, n))
+        .join('')
+        .trim(),
+    )
+    .join('\n\n')
 }
 
 export function statusFrontmatter(status) {
@@ -252,7 +263,6 @@ export function statusFrontmatter(status) {
 
 export function statusUrls(status) {
   const urls = []
-  // if (status.tags) urls.push(...status.tags.map((t) => t.url))
   if (status.card) urls.push(status.card.url)
   return urls.map((u) => u.toLocaleLowerCase())
 }

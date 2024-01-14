@@ -29,17 +29,23 @@ layout: html.njk
             <a href="{{ refs | mastodonStatusLink }}">Mastodon</a>
           </dd>
           {% endif %}
-          <dt>blurb</dt>
-          <dd>
-            {{ blurb }}
-          </dd>
+          <details>
+            <summary>
+              <dt>blurb</dt>
+            </summary>
+            <dd>
+              {{ blurb }}
+            </dd>
+          </details>
         </dl>
       </sidebar-layout>
       
+      {% if content %}
       <div class="flow">
         <h2>thoughts</h2>
         {{ content | safe }}
       </div>
+      {% endif %}
     </stack-layout>
   </center-layout>
 </main>

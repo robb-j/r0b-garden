@@ -32,7 +32,7 @@ layout: html.njk
             <h1>{{ title or 'Note' }}</h1>
             <cluster-layout>
               {% for label in collections.label | tagsToLabels(tags) %}
-              <a href="/notes/tag/{{ label.fileSlug }}">#{{ label.data.title }}</a>
+              <!-- <a href="/notes/tag/{{ label.fileSlug }}">#{{ label.data.title }}</a> -->
               {% endfor %}
             </cluster-layout>
           </header>
