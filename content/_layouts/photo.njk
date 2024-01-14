@@ -23,7 +23,7 @@ layout: html.njk
     <stack-layout>
       {% for slug in media %}
       {% set media = collections.media | findBySlug(slug) %}
-      <figure>
+      <figure id="photo-{{ slug }}">
         {% media_image media, 500 %}
         <figcaption>{{ media.content | safe }}</figcaption>
       </figure>
