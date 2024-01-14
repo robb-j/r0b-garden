@@ -11,16 +11,7 @@ layout: html.njk
 <main>
   <sidebar-layout>
     <nav>
-      <p><strong>Tags</strong></p>
-      <ul role="list">
-        {% for label in collections.label %}
-        <li>
-          <a href="/notes/tag/{{ label.fileSlug }}">
-            #{{ label.data.title }}
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
+      {% include 'note-label-nav.njk' %}
     </nav>
     <div>
       <center-layout>

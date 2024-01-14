@@ -1,0 +1,10 @@
+<p><strong>Tags</strong></p>
+<ul role="list">
+  {% for label in collections.label %}
+  <li>
+    <a href="/notes/tag/{{ label.fileSlug }}">
+      #{{ label.data.title }}
+    </a>
+  </li>
+  {% endfor %}
+</ul>

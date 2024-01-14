@@ -365,7 +365,7 @@ async function updatePage(status, page, content, dryRun) {
 }
 
 /** @param {Map<string, any>} allMedia */
-async function processMedia(allMedia, dryRun) {
+async function processMedia(allMedia, { dryRun }) {
   console.log('fetching media')
 
   for (const [id, media] of allMedia) {
@@ -384,8 +384,43 @@ async function processMedia(allMedia, dryRun) {
   }
 }
 
-async function processLabels() {
-  // ... ???
+async function processLabels(threads, blocklist, { dryRun, overwrite }) {
+  console.log('TODO: ...')
+
+  const directory = getDirectoryUrl('content/labels')
+  const labels = await loadCollection(directory)
+
+  // const tags = new Map()
+
+  for (const thread of Object.values(threads)) {
+    for (const status of thread) {
+      for (const tag of status.tags) {
+        if (blocklist.has(tag.name)) continue
+
+        const label = findByRef(labels, 'mastodon_hashtag', tag.name)
+        if (!label) {
+          const page = {
+            url: new URL(`${tag.name}.md`, directory),
+            data: {
+              title: tag.name,
+              refs: {
+                mastodon_hashtag: [tag.name],
+              },
+            },
+            content: '',
+          }
+
+          if (dryRun) {
+            console.log('create %o %O\n', page.url.toString(), page.data)
+          } else {
+            await writePage(page)
+          }
+
+          labels.set(`${tag.name}.md`, page)
+        }
+      }
+    }
+  }
 }
 
 // Create a map with the values that are in mapB but not mapA
@@ -398,11 +433,13 @@ function mapDiff(mapA, mapB) {
 }
 
 async function main() {
-  const user = await lookupUser(mastodon.url, mastodon.username)
+  const args = {
+    fromCache: process.argv.includes('--cached'),
+    dryRun: process.argv.includes('--dry-run'),
+    overwrite: process.argv.includes('--overwrite'),
+  }
 
-  const fromCache = process.argv.includes('--cached')
-  const dryRun = process.argv.includes('--dry-run')
-  const overwrite = process.argv.includes('--overwrite')
+  const user = await lookupUser(mastodon.url, mastodon.username)
 
   for (const template of Object.keys(mastodon.types)) {
     const tpl = templates[template]
@@ -412,16 +449,20 @@ async function main() {
   const allMedia = await loadMedia(getDirectoryUrl('content/media'))
   const oldMedia = new Map(allMedia)
 
-  const cache = fromCache
+  const cache = args.fromCache
     ? JSON.parse(await fs.readFile(cacheURL, 'utf8'))
     : await fetchCache(allMedia, user.id)
 
   const newMedia = mapDiff(oldMedia, allMedia)
-  await processMedia(newMedia, dryRun)
+  await processMedia(newMedia, args)
 
-  await processThreads(cache.threads, { dryRun, overwrite })
+  await processThreads(cache.threads, args)
 
-  // TODO: process labels
+  const blockedLabels = new Set()
+  for (const type of Object.values(config.mastodon.types)) {
+    for (const tag of type.hashtags) blockedLabels.add(tag)
+  }
+  await processLabels(cache.threads, blockedLabels, args)
 }
 
 //

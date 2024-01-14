@@ -28,11 +28,11 @@
 
 - maybe try WebC
 - get `tools/mastodon.js` to produce content in the desired format
-- parse code snippets from mastodon?
 - notes should show the `card.url`
-- clean out `_.md` files when happy with the format
 - rss feeds
 - film date changes aren't working
 - organise utils into a `lib/` folder of multiple files
 - media overwrite?
 - generate labels
+- what to do with #HashTags (convert to links from HTML or processes in-markdown?)
+- need to merge labels into pages in `statusFrontmatter` + `updatePage`

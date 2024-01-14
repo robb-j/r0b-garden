@@ -9,6 +9,8 @@ permalink: "/notes/tag/{{ label.fileSlug }}/"
 
 {% set title = label.data.title or label.fileSlug %}
 
+{% set notes = collections['label:' + label.fileSlug] or [] %}
+
 <header>
   <a href="/">{{ site.title }}</a>
   /
@@ -20,17 +22,19 @@ permalink: "/notes/tag/{{ label.fileSlug }}/"
 <main>
   <sidebar-layout>
   <nav>
-    <p>...</p>
+    <nav>
+      {% include 'note-label-nav.njk' %}
+    </nav>
   </nav>
   <div>
     <center-layout>
       <stack-layout>
         <header class="flow">
-          <h1>my notes on ... #{{ title }}</h1>
+          <h1>my notes on ... {{ title }}</h1>
         </header>
         
         <!-- TODO: merge this with the logic from "notes.njk" -->
-        {% for month in collections['label:' + label.fileSlug] | groupByMonth %}
+        {% for month in notes | groupByMonth %}
         <section class="flow">
           <h2>{{ month.date | monthAndYear }}</h2>
           <ul>
