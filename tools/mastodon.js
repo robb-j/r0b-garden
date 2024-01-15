@@ -492,4 +492,4 @@ async function* iterateUserHashtag(userId, tag) {
   }
 }
 
-main().catch((error) => console.error('Mastodon failed', error))
+await main()
