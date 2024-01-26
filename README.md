@@ -269,3 +269,9 @@ Now we can run our script with Node, with any combination of parameters:
 ```
 node tools/mastodon.js [--dry-run] [--cached] [--overwrite]
 ```
+
+---
+
+## rob's Landa notes
+
+- system for detecting stale entries, i.e. a deleted mastodon post
