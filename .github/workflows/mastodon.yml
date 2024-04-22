@@ -2,7 +2,7 @@ name: mastodon
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '42 * * * *'
 
 jobs:
   mastodon:
@@ -20,6 +20,8 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+
+      - run: npm ci
 
       - run: node ./tools/mastodon.js
         env:
