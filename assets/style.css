@@ -72,3 +72,9 @@ figure > video {
 summary dt {
   display: inline-block;
 }
+
+a[aria-current='page'] {
+  font-weight: 600;
+  text-decoration-style: dotted;
+  color: #888;
+}

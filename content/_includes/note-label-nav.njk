@@ -1,9 +1,9 @@
 <p><strong>Tags</strong></p>
 <ul role="list">
-  {% for label in collections.label %}
+  {% for item in collections.label %}
   <li>
-    <a href="/notes/tag/{{ label.fileSlug }}">
-      #{{ label.data.title }}
+    <a href="/notes/tag/{{ item.fileSlug }}" aria-current="{{ 'page' if label == item }}">
+      #{{ item.data.title }}
     </a>
   </li>
   {% endfor %}

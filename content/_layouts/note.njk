@@ -15,7 +15,7 @@ layout: html.njk
       <p><strong>Tags</strong></p>
       <ul role="list">
         {% for label in collections.label %}
-        {% set isActive = label | isActiveLabel(tags) %}
+        {% set isActive = label | isActiveLabel(tags, page) %}
         <li>
           <a
             href="/notes/tag/{{ label.fileSlug }}"
