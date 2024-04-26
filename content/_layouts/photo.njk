@@ -11,23 +11,36 @@ layout: html.njk
 </header>
 
 <main class="photo">
-  <center-layout>
-    <header class="flow">
-      {{ content | safe }}
-      <p class="photoMeta">
-        {{ date | longDate }} ⸻ ???
-      </p>
-    </header>
+  <header class="flow">
+    {{ content | safe }}
+    <p class="photoMeta">
+      {{ date | longDate }}
+      {% if refs | mastodonStatusLink %}
+      —
+      <a href="{{ refs | mastodonStatusLink }}">
+        Mastodon
+      </a>
+      {% endif %}
+    </p>
+  </header>
+
+  {% if media.length == 1 %}
+  <center-layout gutters="s0">
+    {% set media = collections.media | findBySlug(media[0]) %}
+    <figure id="photo-{{ slug }}">
+      {% media_image media, 500 %}
+      <figcaption>{{ media.content | safe }}</figcaption>
+    </figure>
   </center-layout>
-  <center-layout>
-    <stack-layout>
-      {% for slug in media %}
-      {% set media = collections.media | findBySlug(slug) %}
-      <figure id="photo-{{ slug }}">
-        {% media_image media, 500 %}
-        <figcaption>{{ media.content | safe }}</figcaption>
-      </figure>
-      {% endfor %}
-    </stack-layout>
-  </center-layout>
+  {% else %}
+  <masonry-layout>
+    {% for slug in media %}
+    {% set media = collections.media | findBySlug(slug) %}
+    <figure id="photo-{{ slug }}">
+      {% media_image media, 500 %}
+      <figcaption>{{ media.content | safe }}</figcaption>
+    </figure>
+    {% endfor %}
+  </masonry-layout>
+  {% endif %}
 </main>

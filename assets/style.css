@@ -19,15 +19,20 @@ dl:not([class]) > dd + dt {
   padding: var(--s1);
 }
 .tune summary {
-  display: grid;
-  grid-template-columns: max-content auto;
-  grid-template-rows: 1fr 1fr;
+  display: flex;
   gap: var(--s-1);
+  list-style: none;
+}
+.tune summary::marker {
+  display: none;
 }
 .tune summary img {
   grid-column: 1 / 2;
   grid-row: 1 / 3;
   border-radius: var(--s-4);
+}
+.tune-info {
+  align-self: center;
 }
 
 .tune-title {
@@ -49,8 +54,18 @@ dl:not([class]) > dd + dt {
 .photos header {
   margin-bottom: var(--s1);
 }
+
+.photo {
+  padding-inline: 0;
+  padding-block-start: 0;
+}
 .photo header {
-  margin-bottom: var(--s1);
+  /* margin-bottom: var(--s1); */
+  /* text-align: center; */
+  padding: 0 var(--s0) var(--s0) var(--s0);
+}
+.photo figcaption {
+  margin-bottom: var(--s0);
 }
 .photoMeta {
   font-style: italic;
@@ -77,4 +92,16 @@ a[aria-current='page'] {
   font-weight: 600;
   text-decoration-style: dotted;
   color: #888;
+}
+
+/* custom layout ? */
+masonry-layout {
+  display: block;
+  columns: 32em auto;
+  column-gap: var(--s-3);
+  margin-inline: auto;
+}
+masonry-layout > * {
+  break-inside: avoid;
+  max-width: 48em;
 }

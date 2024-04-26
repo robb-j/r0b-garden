@@ -22,12 +22,12 @@ layout: html.njk
       <section class="flow">
         <h2>{{ month.date | monthAndYear }}</h2>
         <table>
-          <thead>
+          <!-- <thead>
             <tr>
               <th>Day</th>
               <th>Film</th>
             </tr>
-          </thead>
+          </thead> -->
           {% for item in month.collection %}
           <tr>
             <td>
@@ -39,7 +39,7 @@ layout: html.njk
             <td>
               <cluster-layout space="s-1" align="center">
                 <a href="{{ item.page.url }}">
-                  {% media_image collections.media | findBySlug(item.data.media[0]), 40 %}
+                  {% media_image collections.media | findBySlug(item.data.media[0]), 60 %}
                 </a>
                 <a href="{{ item.page.url }}">
                   {{ item.data.title }} →
