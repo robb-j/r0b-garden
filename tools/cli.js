@@ -28,39 +28,32 @@ function exit(message) {
   process.exit(1)
 }
 
+async function fetchOpenGraph(url) {
+  console.log('Fetching metadata', url)
+  const res = await fetch(url)
+  if (!res.ok) exit('Failed to fetch metadata: ' + res.statusText)
+
+  return parseOpengraph(url, await res.text())
+}
+
 async function createFilm(args = {}) {
   const prompt = rl.createInterface(process.stdin, process.stdout)
 
   const url = await prompt.question('TMDB URL: ')
   if (!url) exit('URL is required')
 
-  console.log('Fetching metadata', url)
-  const res = await fetch(url)
-  if (!res.ok) exit('Failed to fetch metadata: ' + res.statusText)
+  const opengraph = await fetchOpenGraph(url)
 
   const collection = await loadCollection(dirs.films)
   const allMedia = await loadMedia(dirs.media)
 
-  const opengraph = parseOpengraph(url, await res.text())
-
   let media = null
   if (opengraph.image) {
-    console.log('Fetching image', opengraph.image)
-    const res = await fetch(opengraph.image)
-    if (!res.ok) exit('Failed to fetch media')
-
-    const image = await sharp(await res.arrayBuffer()).metadata()
-
-    media = {
+    media = await fetchMedia({
       id: nextPage(allMedia.keys()),
-      content: opengraph.title,
-      data: {
-        type: 'image',
-        original: opengraph.image,
-        width: image.width,
-        height: image.height,
-      },
-    }
+      url: opengraph.image,
+      title: opengraph.title,
+    })
   }
 
   const id = nextPage(collection.keys())
@@ -102,24 +95,79 @@ async function createFilm(args = {}) {
   prompt.close()
 }
 
+async function fetchMedia({ url, title, id }) {
+  console.log('Fetching image', url)
+  const res = await fetch(url)
+  if (!res.ok) exit('Failed to fetch media')
+
+  const image = await sharp(await res.arrayBuffer()).metadata()
+
+  return {
+    id,
+    content: title,
+    data: {
+      type: 'image',
+      original: url,
+      width: image.width,
+      height: image.height,
+    },
+  }
+}
+
+async function createMedia(args = {}) {
+  const prompt = rl.createInterface(process.stdin, process.stdout)
+
+  const allMedia = await loadMedia(dirs.media)
+
+  const title = await prompt.question('Enter caption: ')
+  if (!title) exit('URL is required')
+
+  const url = await prompt.question('Enter file URL: ')
+  if (!url) exit('URL is required')
+
+  const id = nextPage(allMedia.keys())
+
+  const media = await fetchMedia({ id, url, title })
+  const mediaUrl = new URL(`${media.id}.md`, dirs.media)
+
+  if (args.dryRun) {
+    console.log('Create %s', mediaUrl, media)
+  } else {
+    await resolveMedia(media)
+    await writePage({ url: mediaUrl, ...media })
+    console.log('created content/media/%s.id', media.id)
+  }
+
+  prompt.close()
+}
+
 const cli = yargs(hideBin(process.argv))
   .help()
   .alias('h', 'help')
   .demandCommand(1, 'command is required')
   .recommendCommands()
+  .option('dry-run', { type: 'boolean' })
 
 cli.command(
   'create <type>',
   'Create a piece of content',
   (yargs) =>
-    yargs
-      .positional('type', {
-        choices: ['film', 'note', 'label'],
-      })
-      .option('dry-run', { type: 'boolean' }),
+    yargs.positional('type', {
+      choices: ['film', 'note', 'label', 'media'],
+    }),
   (args) => {
     if (args.type === 'film') return createFilm(args)
+    if (args.type === 'media') return createMedia(args)
     throw new Error('Not implemented')
+  },
+)
+
+cli.command(
+  'opengraph <url>',
+  'Fetch opengraph metadata from a URL',
+  (yargs) => yargs.positional('url', { type: 'string' }),
+  async (args) => {
+    console.log('Opengraph', await fetchOpenGraph(args.url))
   },
 )
 

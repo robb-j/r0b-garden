@@ -65,7 +65,8 @@ dl:not([class]) > dd + dt {
   padding: 0 var(--s0) var(--s0) var(--s0);
 }
 .photo figcaption {
-  margin-bottom: var(--s0);
+  margin-inline: var(--s-2);
+  margin-block-end: var(--s0);
 }
 .photoMeta {
   font-style: italic;
@@ -111,4 +112,18 @@ masonry-layout {
 masonry-layout > * {
   break-inside: avoid;
   max-width: 48em;
+}
+
+.filmGrid {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: var(--s-1);
+  align-items: center;
+}
+.filmGrid-image {
+  max-width: 100px;
+}
+
+a {
+  word-break: break-all;
 }

@@ -15,40 +15,32 @@ layout: html.njk
     <stack-layout space="s3">
       <header>
         <h1>Some films I've watched</h1>
-        <p>In chronological order ... of course</p>
+        <p>In reverse-chronological order ... of course</p>
       </header>
       
       {% for month in collections.film | groupByMonth %}
       <section class="flow">
         <h2>{{ month.date | monthAndYear }}</h2>
-        <table>
-          <!-- <thead>
-            <tr>
-              <th>Day</th>
-              <th>Film</th>
-            </tr>
-          </thead> -->
+        <div class="filmGrid">
           {% for item in month.collection %}
-          <tr>
-            <td>
-              {{ item.page.date | dateOfMonth }}
-              <sup>
-                {{ item.page.date | dateOrdinal }}
-              </sup>
-            </td>
-            <td>
-              <cluster-layout space="s-1" align="center">
-                <a href="{{ item.page.url }}">
-                  {% media_image collections.media | findBySlug(item.data.media[0]), 60 %}
-                </a>
-                <a href="{{ item.page.url }}">
-                  {{ item.data.title }} →
-                </a>
-              </cluster-layout>
-            </td>
-          </tr>
+          <div class="filmGrid-date">
+            {{ item.page.date | dateOfMonth }}
+            <sup>{{ item.page.date | dateOrdinal }}</sup>
+          </div>
+          <div class="filmGrid-image">
+            <a href="{{ item.page.url }}">
+              <frame-layout ratio="6:9">
+                {% media_image collections.media | findBySlug(item.data.media[0]), 60 %}
+              </frame-layout>
+            </a>
+          </div>
+          <div class="filmGrid-title">
+            <a href="{{ item.page.url }}">
+              {{ item.data.title }} →
+            </a>
+          </div>
           {% endfor %}
-        </table>
+        </div>
       </section>
       <p></p>
       {% endfor %}

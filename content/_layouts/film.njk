@@ -15,7 +15,9 @@ layout: html.njk
   <center-layout>
     <stack-layout>
       <sidebar-layout>
-        {% media_image collections.media | findBySlug(media[0]), 200 %}
+        <div>
+          {% media_image collections.media | findBySlug(media[0]), 200 %}
+        </div>
         <dl>
           <dt>when</dt>
           <dd>{{ date | longDate }}</dd>

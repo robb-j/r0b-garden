@@ -32,13 +32,13 @@ layout: html.njk
               </div>
             </summary>
             {{ item.content | safe }}
-            <cluster-layout>
+            <cluster-layout justify="center" >
             <a href="{{ item.data.url }}">
-              Open
+              Open →
             </a>
             {% if item.data.refs | mastodonStatusLink %}
             <a href="{{ item.data.refs | mastodonStatusLink }}">
-              Mastodon
+              Mastodon →
             </a>
             {% endif %}
             </cluster-layout>
