@@ -89,9 +89,16 @@ summary dt {
 }
 
 a[aria-current='page'] {
-  font-weight: 600;
-  text-decoration-style: dotted;
-  color: #888;
+  /* font-weight: 600; */
+  text-decoration: none;
+  /* color: #888; */
+
+  background: var(--highlight);
+  border: 1px solid var(--border);
+  padding: 0.1em;
+  margin: -0.1em;
+
+  /* outline: 2px solid red; */
 }
 
 /* custom layout ? */

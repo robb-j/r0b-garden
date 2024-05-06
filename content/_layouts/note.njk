@@ -15,13 +15,19 @@ layout: html.njk
       <p><strong>Tags</strong></p>
       <ul role="list">
         {% for label in collections.label %}
+        {% set labelNotes = collections['label:' + label.fileSlug] or [] %}
+        {% if labelNotes.length > 0 %}
         {% set isActive = label | isActiveLabel(tags, page) %}
         <li>
           <a
             href="/notes/tag/{{ label.fileSlug }}"
             aria-current="{{ 'page' if isActive else 'false' }}"
-          >#{{ label.data.title }}</a>
+          >
+            #{{ label.data.title }}
+            <sup>{{ labelNotes.length }}</sup>
+          </a>
         </li>
+        {% endif %}
         {% endfor %}
       </ul>
     </nav>

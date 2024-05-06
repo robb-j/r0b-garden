@@ -61,6 +61,11 @@ const filters = {
   htmlText(inputText) {
     return cheerio.load(inputText).text()
   },
+  sortByTitle(collection) {
+    return Array.from(collection).sort((a, b) =>
+      a.data.title.localeCompare(b.data.title),
+    )
+  },
 }
 
 const videoTypes = new Set(['gifv', 'video'])
