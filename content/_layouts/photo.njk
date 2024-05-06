@@ -18,20 +18,21 @@ layout: html.njk
       {% if refs | mastodonStatusLink %}
       —
       <a href="{{ refs | mastodonStatusLink }}">
-        Mastodon
+        from Mastodon
       </a>
       {% endif %}
     </p>
   </header>
 
   {% if media.length == 1 %}
-  <center-layout gutters="s0">
+  <center-layout gutters="0" max="42em">
     {% set media = collections.media | findBySlug(media[0]) %}
     <figure id="photo-{{ slug }}">
       {% media_image media, 500 %}
       <figcaption>{{ media.content | safe }}</figcaption>
     </figure>
   </center-layout>
+  
   {% else %}
   <masonry-layout>
     {% for slug in media %}
