@@ -30,7 +30,7 @@ jobs:
           S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
           S3_ENDPOINT: ams3.digitaloceanspaces.com
           S3_BUCKET: r0b-media
-          S3_CDN_URL: https://media.r0b.tech
+          S3_CDN_URL: https://media.r0b.io
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
