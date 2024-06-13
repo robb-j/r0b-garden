@@ -83,12 +83,12 @@ async function createFilm(args = {}) {
     }
   } else {
     await writePage({ url: pageUrl, ...film })
-    console.log('created content/films/%s.id', id)
+    console.log('created content/films/%s.md', id)
 
     if (media) {
       await resolveMedia(media)
       await writePage({ url: mediaUrl, ...media })
-      console.log('created content/media/%s.id', media.id)
+      console.log('created content/media/%s.md', media.id)
     }
   }
 
