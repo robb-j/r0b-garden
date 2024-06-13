@@ -25,7 +25,7 @@ layout: html.njk
   </header>
 
   {% if media.length == 1 %}
-  <center-layout gutters="0" max="42em">
+  <center-layout gutters="0" max="80ch">
     {% set media = collections.media | findBySlug(media[0]) %}
     <figure id="photo-{{ slug }}">
       {% media_image media, 500 %}
