@@ -105,7 +105,7 @@ a[aria-current='page'] {
 /* custom layout ? */
 masonry-layout {
   display: block;
-  columns: 32em auto;
+  columns: 50ch auto;
   column-gap: var(--s-3);
   margin-inline: auto;
 }
@@ -126,4 +126,21 @@ masonry-layout > * {
 
 a {
   word-break: break-all;
+}
+
+body > header {
+  background: #5cb171;
+  color: #edfcf1;
+  position: relative;
+  margin-bottom: 15px;
+}
+body > header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  border-right: 90vw solid transparent;
+  border-top: 10px solid #5db171;
+  border-left: 10vw solid transparent;
 }
