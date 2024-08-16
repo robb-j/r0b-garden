@@ -1,7 +1,7 @@
 ---
 title: programmablethings
 refs:
-  mastodon_hashtag: ['programmablethings']
+  mastodon_hashtag: ['programmablethings','scriptablethings']
 ---
 
 
