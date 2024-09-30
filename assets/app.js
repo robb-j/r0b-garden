@@ -26,7 +26,7 @@ window.addEventListener('keyup', (event) => {
   if (!('URLPattern' in window)) return
   
   for (const type of types) {
-    const result = pattern.exec(location.href)
+    const result = type.pattern.exec(location.href)
     if (!result) continue
     location.href = type.href(result)
   }
