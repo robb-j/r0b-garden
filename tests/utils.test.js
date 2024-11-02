@@ -200,7 +200,11 @@ describe('nextPage', () => {
 describe('isRef', () => {
   it('checks if reference', () => {
     assert(
-      isRef({ data: { refs: { toot: [1] } } }, 'toot', 1),
+      isRef(
+        { data: { refs: { toot: ['https://example.com/1'] } } },
+        'toot',
+        'https://example.com/1',
+      ),
       'should be a reference if it is in data.refs[kind]',
     )
   })
