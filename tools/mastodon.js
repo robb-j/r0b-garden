@@ -202,7 +202,7 @@ async function fetchCache(allMedia, userId) {
       for await (const status of iterateUserHashtag(userId, tag)) {
         console.debug(' - ' + status.id)
 
-        let cardMedia = findByRef(allMedia, 'mastodon_card', status.id)
+        let cardMedia = findByRef(allMedia, 'mastodon_card', status.url)
 
         if (!cardMedia && status.card && !status.card.image) {
           console.debug('   fetching card %s', status.card.url)
@@ -253,7 +253,7 @@ async function fetchCache(allMedia, userId) {
   return cache
 }
 
-async function processThreads(threads, { dryRun, overwrite }) {
+async function processThreads(threads, statuses, { dryRun, overwrite }) {
   // Pre load collections for each content-type
   const collections = {}
   for (const [template, contentType] of Object.entries(mastodon.types)) {
@@ -281,7 +281,7 @@ async function processThreads(threads, { dryRun, overwrite }) {
       // Process the status using the related template
       const { content, data } = templates[template](status)
 
-      await emplaceStatus(status, pages, {
+      await emplaceStatus(status, pages, statuses, {
         skip: async (page) => {
           if (overwrite) {
             const isFirst = page.data.refs?.mastodon_status?.[0] === status.url
@@ -297,10 +297,10 @@ async function processThreads(threads, { dryRun, overwrite }) {
                 dryRun,
               )
             } else {
-              await updatePage(status, page, content, dryRun)
+              await updatePage(status, page, content, data, dryRun)
             }
           } else if (dryRun) {
-            console.log('skip status=%o', status.id, page.url)
+            console.log('skip status=%o', status.id, page.url.toString())
           } else skipped++
         },
         insert: () =>
@@ -312,7 +312,7 @@ async function processThreads(threads, { dryRun, overwrite }) {
             data,
             dryRun,
           ),
-        update: (page) => updatePage(status, page, content, dryRun),
+        update: (page) => updatePage(status, page, content, data, dryRun),
       })
     }
   }
@@ -352,29 +352,42 @@ async function insertPage(id, pages, contentType, content, data, dryRun) {
   @param {any} data
   @param {boolean} dryRun
   */
-async function updatePage(status, page, content, dryRun) {
+async function updatePage(status, page, content, data, dryRun) {
   // Update the page
   page.content += '\n\n' + content
   page.data.refs.mastodon_status.push(status.url)
 
+  if (data.media) {
+    upsertArray(page.data, 'media').push(...data.media)
+  }
+  if (data.tags) {
+    upsertArray(page.data, 'tags').push(...data.tags)
+    page.data.tags = Array.from(new Set(page.data.tags))
+  }
+
   if (dryRun) {
-    console.log('update %o %O\n%s\n', page.url.toString(), content)
+    console.log('update %o %O\n%s\n', page.url.toString(), data, content)
   } else {
     await writePage(page)
   }
 }
 
-/** @param {Map<string, any>} allMedia */
-async function processMedia(allMedia, { dryRun }) {
+function upsertArray(value, key) {
+  if (!value[key]) value[key] = []
+  return value[key]
+}
+
+/** @param {Map<string, any>} newMedia */
+async function processMedia(newMedia, { dryRun }) {
   console.log('fetching media')
 
-  for (const [id, media] of allMedia) {
+  for (const [id, media] of newMedia) {
     console.log(' - ' + id)
 
     const url = new URL(`${id}.md`, getDirectoryUrl('content/media'))
 
     if (dryRun) {
-      console.log('create %o', url.toString(), media)
+      console.log('create %o', url.toString(), media.data)
     } else {
       await resolveMedia(media)
 
@@ -432,12 +445,12 @@ function mapDiff(mapA, mapB) {
   return new Map(newEntries)
 }
 
-async function main() {
-  const args = {
-    fromCache: process.argv.includes('--cached'),
-    dryRun: process.argv.includes('--dry-run'),
-    overwrite: process.argv.includes('--overwrite'),
-  }
+export async function scrapeMastodon(args) {
+  // const args = {
+  //   fromCache: process.argv.includes('--cached'),
+  //   dryRun: process.argv.includes('--dry-run'),
+  //   overwrite: process.argv.includes('--overwrite'),
+  // }
 
   const user = await lookupUser(mastodon.url, mastodon.username)
 
@@ -456,7 +469,7 @@ async function main() {
   const newMedia = mapDiff(oldMedia, allMedia)
   await processMedia(newMedia, args)
 
-  await processThreads(cache.threads, args)
+  await processThreads(cache.threads, cache.statuses, args)
 
   const blockedLabels = new Set()
   for (const type of Object.values(config.mastodon.types)) {
@@ -491,5 +504,3 @@ async function* iterateUserHashtag(userId, tag) {
     yield* visit(...ancestors, ...descendants)
   }
 }
-
-await main()

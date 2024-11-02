@@ -18,6 +18,8 @@ import {
   resolveMedia,
 } from '../utils.js'
 
+import { scrapeMastodon } from './mastodon.js'
+
 const dirs = {
   films: new URL('../content/films/', import.meta.url),
   media: new URL('../content/media/', import.meta.url),
@@ -169,6 +171,17 @@ cli.command(
   async (args) => {
     console.log('Opengraph', await fetchOpenGraph(args.url))
   },
+)
+
+cli.command(
+  'mastodon',
+  'Run the Mastodon scraper',
+  (yargs) =>
+    yargs
+      .option('dry-run', { type: 'boolean', default: false })
+      .option('overwrite', { type: 'boolean', default: false })
+      .option('cached', { type: 'boolean', default: false }),
+  (args) => scrapeMastodon(args),
 )
 
 async function main() {

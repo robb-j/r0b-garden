@@ -23,7 +23,7 @@ jobs:
 
       - run: npm ci
 
-      - run: node ./tools/mastodon.js
+      - run: node ./tools/cli.js mastodon
         env:
           MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}
           S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}

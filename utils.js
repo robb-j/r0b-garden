@@ -160,15 +160,17 @@ export function findByRef(map, kind, id) {
   return null
 }
 
-export function emplaceStatus(status, pages, operation = {}) {
+export function emplaceStatus(status, pages, statuses, operation = {}) {
   for (const page of pages.values()) {
-    if (isRef(page, 'mastodon_status', status.id)) {
+    if (isRef(page, 'mastodon_status', status.url)) {
       return operation.skip?.(page)
     }
   }
-  if (status.in_reply_to_id) {
+  if (status.in_reply_to_id && statuses[status.in_reply_to_id]) {
+    const parent = statuses[status.in_reply_to_id]
+
     for (const page of pages.values()) {
-      if (isRef(page, 'mastodon_status', status.in_reply_to_id)) {
+      if (isRef(page, 'mastodon_status', parent.url)) {
         return operation.update?.(page, status)
       }
     }

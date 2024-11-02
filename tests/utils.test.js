@@ -214,7 +214,8 @@ describe('emplaceStatus', () => {
   it('inserts missing statuses', ({ mock }) => {
     const insert = mock.fn()
     const pages = new Map()
-    emplaceStatus({ id: 1 }, pages, { insert })
+    const statuses = {}
+    emplaceStatus({ url: 'https://example.com/1' }, pages, statuses, { insert })
     assert(
       insert.mock.callCount(),
       'should insert a page if there is no matching one',
@@ -223,8 +224,11 @@ describe('emplaceStatus', () => {
   it('ignores present statuses', ({ mock }) => {
     const skip = mock.fn()
     const pages = new Map()
-    pages.set('1.md', { data: { refs: { mastodon_status: [1] } } })
-    emplaceStatus({ id: 1 }, pages, { skip })
+    const statuses = {}
+    pages.set('1.md', {
+      data: { refs: { mastodon_status: ['https://example.com/1'] } },
+    })
+    emplaceStatus({ url: 'https://example.com/1' }, pages, statuses, { skip })
     assert(
       skip.mock.callCount(),
       'should do nothing if their is already a page referencing the status',
@@ -233,8 +237,18 @@ describe('emplaceStatus', () => {
   it('updates missing statuses', ({ mock }) => {
     const update = mock.fn()
     const pages = new Map()
-    pages.set('1.md', { data: { refs: { mastodon_status: [1] } } })
-    emplaceStatus({ id: 2, in_reply_to_id: 1 }, pages, { update })
+    const statuses = {
+      1: { url: 'https://example.com/1' },
+    }
+    pages.set('1.md', {
+      data: { refs: { mastodon_status: ['https://example.com/1'] } },
+    })
+    emplaceStatus(
+      { url: 'https://example.com/2', in_reply_to_id: 1 },
+      pages,
+      statuses,
+      { update },
+    )
     assert(
       update.mock.callCount(),
       'should update a page if the status is a reply to it',
@@ -242,13 +256,25 @@ describe('emplaceStatus', () => {
   })
   it('allows missing operations', () => {
     const pages = new Map()
-    emplaceStatus({ id: 1 }, pages)
+    const statuses = {
+      1: { url: 'https://example.com/1' },
+      2: { url: 'https://example.com/2' },
+    }
+    emplaceStatus({ url: 'https://example.com/1' }, pages, statuses)
 
-    pages.set('1.md', { data: { refs: { mastodon_status: [1] } } })
-    emplaceStatus({ id: 1 }, pages)
+    pages.set('1.md', {
+      data: { refs: { mastodon_status: ['https://example.com/1'] } },
+    })
+    emplaceStatus({ url: 'https://example.com/1' }, pages, statuses)
 
-    pages.set('2.md', { data: { refs: { mastodon_status: [2] } } })
-    emplaceStatus({ id: 3, in_reply_to_id: 2 }, pages)
+    pages.set('2.md', {
+      data: { refs: { mastodon_status: ['https://example.com/2'] } },
+    })
+    emplaceStatus(
+      { url: 'https://example.com/3', in_reply_to_id: 2 },
+      pages,
+      statuses,
+    )
 
     // Non of the above should throw
   })
@@ -372,7 +398,7 @@ describe('statusFrontmatter', () => {
   it('generates frontmatter', () => {
     assert.deepEqual(
       statusFrontmatter({
-        id: 1,
+        url: 'https://example/com/1',
         created_at: '2024-01-01 10:00:00',
         meta: {
           media: ['1.md', '2.md'],
@@ -380,7 +406,7 @@ describe('statusFrontmatter', () => {
       }),
       {
         refs: {
-          mastodon_status: [1],
+          mastodon_status: ['https://example/com/1'],
         },
         date: new Date('2024-01-01 10:00:00'),
         media: ['1.md', '2.md'],
@@ -428,7 +454,7 @@ describe('getAttachmentMedia', () => {
           height: 300,
           blurhash: 'plop',
           refs: {
-            mastodon_media: ['https://example.com/original/abcdef.jpg'],
+            mastodon_media: [1],
           },
         },
         content: 'cool image',
@@ -442,7 +468,7 @@ describe('getCardMedia', () => {
   it('converts to media', () => {
     assert.deepEqual(
       getCardMedia({
-        id: 1,
+        url: 'https://example.com/1',
         card: {
           image: 'https://example.com/original/abcdef.jpg',
           width: 400,
@@ -459,7 +485,7 @@ describe('getCardMedia', () => {
           height: 300,
           blurhash: 'plop',
           refs: {
-            mastodon_card: [1],
+            mastodon_card: ['https://example.com/1'],
           },
         },
         content: 'cool image',
