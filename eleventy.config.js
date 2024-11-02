@@ -69,17 +69,73 @@ const filters = {
 const videoTypes = new Set(['gifv', 'video'])
 const imageTypes = new Set(['image'])
 
-const shortcodes = {
-  media_image(media, width = media?.data?.width) {
-    if (videoTypes.has(media?.data?.type)) {
-      return `<video controls width="${media.data.width}" height="${media.data.height}"><source  src="${media.data.original}" /></control>`
-    }
-    if (imageTypes.has(media?.data?.type)) {
-      const height = width * (media.data.height / media.data.width)
-      return `<img src="${media.data.original}" width="${width}" height="${height}">`
-    }
-    console.log('unknown media', media?.data?.type)
+function renderMedia(media, width = media?.data?.width) {
+  if (!media) {
+    console.error('Media not found %s', id)
     return ''
+  }
+
+  const autoHeight = width * (media.data.height / media.data.width)
+
+  if (videoTypes.has(media.data?.type)) {
+    return [
+      `<video controls width="${width}" height="${autoHeight}">`,
+      `<source src="${media.data.original}" />`,
+      `</video>`,
+    ].join('')
+  }
+
+  if (imageTypes.has(media.data?.type)) {
+    return `<img src="${media.data.original}" width="${width}" height="${autoHeight}" alt="${media.data.alt}">`
+  }
+
+  console.log('unknown media', media?.data?.type)
+
+  return ''
+}
+
+function lookup(collection, id) {
+  return collection?.find((item) => item.page.fileSlug === `${id}`)
+}
+
+const shortcodes = {
+  related(kind, id) {
+    const item = lookup(this.ctx.collections[kind], id)
+
+    if (!item) {
+      console.error('related not found %s %s', kind, id)
+      return ''
+    }
+
+    const { title = `${kind}/${id}` } = item?.data ?? {}
+    return `<a class="related" href="${item.url}">related: ${title}</a>`
+  },
+  external(url, text = url) {
+    return [
+      '<div class="pulled">',
+      `<a href="${url}">${text}</a>`,
+      '</div>',
+    ].join('')
+  },
+  media(media, width) {
+    if (typeof media === 'string' || typeof media === 'number') {
+      media = lookup(this.ctx.collections.media, media)
+    }
+
+    return [
+      `<figure>`,
+      renderMedia(media, width),
+      `<figcaption>${media.content}</figcaption>`,
+      `</figure>`,
+    ].join('')
+  },
+  media_element(media, width = media?.data?.width) {
+    if (typeof media === 'string' || typeof media === 'number') {
+      media = this.ctx.collections.media.find(
+        (item) => item.page.fileSlug === `${media}`,
+      )
+    }
+    return renderMedia(media, width)
   },
   media_image_preview(media, width = media.data.width) {
     if (
@@ -99,6 +155,7 @@ const shortcodes = {
   },
 }
 
+/** @param {import("@11ty/eleventy/src/UserConfig.js").default} eleventyConfig */
 export default function (eleventyConfig) {
   eleventyConfig.addPlugin(syntaxHighlight)
   eleventyConfig.addPlugin(eleventyAlembic, { useLabcoat: true })
@@ -106,7 +163,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPlugin(pluginRss)
   eleventyConfig.addPlugin(syntaxHighlight)
 
-  const md = markdown({ linkify: true })
+  const md = markdown({ linkify: true, html: true })
   md.use(markdownAnchor)
   eleventyConfig.setLibrary('md', md)
 
@@ -120,6 +177,8 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('assets')
 
   eleventyConfig.setServerOptions({ domDiff: false })
+
+  eleventyConfig.setQuietMode(true)
 
   return {
     dir: {

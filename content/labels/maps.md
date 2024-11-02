@@ -1,7 +1,7 @@
 ---
 title: maps
 refs:
-  mastodon_hashtag: ['maps']
+  mastodon_hashtag: [maps, mapping]
 ---
 
 

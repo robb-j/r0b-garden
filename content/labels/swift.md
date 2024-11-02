@@ -1,7 +1,7 @@
 ---
 title: swift
 refs:
-  mastodon_hashtag: ['swift']
+  mastodon_hashtag: [swift, swiftui]
 ---
 
 

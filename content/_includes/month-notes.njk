@@ -1,0 +1,21 @@
+<section class="flow">
+  <h2>{{ month.date | monthAndYear }}</h2>
+  <ul>
+    {% for note in month.collection %}
+    {% set labels = collections.label | tagsToLabels(note.data.tags) %}
+    <li>
+      <a href="{{ note.url }}">
+        {% if note.data.title %}
+        <strong>{{ note.data.title }}</strong>
+        {% else %}
+        {{ note | pickTitle }}
+        {% endif %}
+        {% for label in labels %}
+        #{{ label.fileSlug }}
+        {% endfor %}
+        →
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>

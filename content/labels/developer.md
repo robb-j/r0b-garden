@@ -1,7 +1,7 @@
 ---
-title: developer
+title: Developer
 refs:
-  mastodon_hashtag: ['developer']
+  mastodon_hashtag: ['developer', 'dev']
 ---
 
 

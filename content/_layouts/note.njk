@@ -42,21 +42,41 @@ layout: html.njk
               {% endfor %}
             </cluster-layout>
           </header>
-          
-          <!-- <reel-layout> -->
-            {% for slug in media %}
-            {% set m = collections.media | findBySlug(slug) %}
-            <figure>
-              {% media_image m, 500 %}
-              <!--  -->
-              <figcaption>{{ m.content | safe }}</figcaption>
-            </figure>
-            {% endfor %}
-          <!-- </reel-layout> -->
-          
+
           <article class="flow">
             {{ content | safe }}
           </article>
+          
+          {% if not override.media %}
+          {% for slug in media %}
+          {% set m = collections.media | findBySlug(slug) %}
+          <figure>
+            {% media_element m, 500 %}
+            <!--  -->
+            <figcaption>{{ m.content | safe }}</figcaption>
+          </figure>
+          {% endfor %}
+          {% endif %}
+
+          {% if refs.external and not override.external %}
+          <div class="pulled">
+            {% if refs.external and refs.external.length == 1 %}
+            <a href="{{ refs.external[0] }}">{{ refs.external[0] }}</a>
+            {% else %}
+            <ul>
+              {% for url in refs.external %}
+              <li><a href="{{ url }}">{{ url }}</a></li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+          {% endif %}
+          
+          <details class="metadata">
+            <summary>metadata</summary>
+            <pre>{{ refs | dump(2) }}</pre>
+          </details>
+
         </stack-layout>
       </center-layout>
     </div>

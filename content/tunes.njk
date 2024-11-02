@@ -25,7 +25,7 @@ layout: html.njk
           {% for item in month.collection %}
           <details class="tune" data-tune="{{ item.page.fileSlug }}">
             <summary>
-              {% media_image collections.media | findBySlug(item.data.media[0]), 120 %}
+              {% media_element collections.media | findBySlug(item.data.media[0]), 120 %}
               <div class="tune-info">
                 <p class="tune-title">{{ item.data.title }}</p>
                 <p class="tune-description">{{ item.data.description }}</p>

@@ -355,7 +355,8 @@ async function insertPage(id, pages, contentType, content, data, dryRun) {
 async function updatePage(status, page, content, data, dryRun) {
   // Update the page
   page.content += '\n\n' + content
-  page.data.refs.mastodon_status.push(status.url)
+  // page.data.refs.mastodon_status.push(status.url)
+  assignRefs(page.data.refs, data.refs ?? {})
 
   if (data.media) {
     upsertArray(page.data, 'media').push(...data.media)
@@ -369,6 +370,14 @@ async function updatePage(status, page, content, data, dryRun) {
     console.log('update %o %O\n%s\n', page.url.toString(), data, content)
   } else {
     await writePage(page)
+  }
+}
+
+function assignRefs(target, ...sources) {
+  for (const source of sources) {
+    for (const [key, values] of Object.entries(source)) {
+      upsertArray(target, key).push(...values)
+    }
   }
 }
 

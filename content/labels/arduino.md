@@ -1,7 +1,7 @@
 ---
 title: arduino
 refs:
-  mastodon_hashtag: ['arduino']
+  mastodon_hashtag: ['arduino', platformio]
 ---
 
 

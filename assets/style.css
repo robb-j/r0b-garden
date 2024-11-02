@@ -1,5 +1,16 @@
 @import './dracula.css';
 
+:root {
+  --unimportant: #888;
+  --anchor: #498e5a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --unimportant: #999;
+    --anchor: #66c07c;
+  }
+}
+
 /* NOTE: not in current version of labcoat */
 dl:not([class]) dt {
   font-weight: 600;
@@ -75,6 +86,10 @@ dl:not([class]) > dd + dt {
   width: 100%;
 }
 
+figure {
+  text-align: center;
+}
+
 figure > img {
   margin: auto;
   height: auto;
@@ -124,8 +139,29 @@ masonry-layout > * {
   max-width: 100px;
 }
 
+.pulled {
+  padding: var(--s1);
+  background: var(--highlight);
+  border-left: var(--s-3) dashed var(--anchor);
+}
+
 a {
   word-break: break-all;
+}
+
+a:not([class]) {
+  color: var(--anchor);
+}
+
+hr {
+  border: none;
+  border-bottom: var(--s-4) dashed var(--border);
+  margin-block: var(--s2);
+  --flow: var(--s2);
+}
+
+pre {
+  font-size: 14px;
 }
 
 body > header {
@@ -154,4 +190,22 @@ frame-layout > picture > img {
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
+}
+
+header a:not([class]),
+nav a:not([class]) {
+  color: currentColor;
+}
+
+.related {
+  color: var(--unimportant);
+  padding: var(--s-3) var(--s-1);
+  background: var(--highlight);
+  border-radius: var(--s-2);
+  text-decoration-style: dashed;
+}
+
+.metadata summary {
+  font-style: italic;
+  color: var(--unimportant);
 }

@@ -254,10 +254,10 @@ export function statusText(inputText, options = {}) {
 }
 
 export function statusFrontmatter(status) {
+  const refs = { mastodon_status: [status.url] }
+  if (status.card) refs.external = [status.card]
   return {
-    refs: {
-      mastodon_status: [status.url],
-    },
+    refs,
     date: new Date(status.created_at),
     media: status.meta?.media ?? undefined,
   }
@@ -389,21 +389,6 @@ export async function writePage(page) {
 
 export function prettyYaml(data) {
   const doc = Yaml.parseDocument(Yaml.stringify(data))
-
-  const refs = doc.get('refs')
-  if (refs && Yaml.isCollection(refs)) {
-    for (const item of refs.items) {
-      if (Yaml.isSeq(item.value)) {
-        item.value.flow = true
-
-        // for (const id of item.value.items) {
-        //   if (Yaml.isScalar(id)) {
-        //     id.type = 'QUOTE_SINGLE'
-        //   }
-        // }
-      }
-    }
-  }
 
   const media = doc.get('media')
   if (media && Yaml.isSeq(media)) {

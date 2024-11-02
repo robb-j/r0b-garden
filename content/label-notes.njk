@@ -35,23 +35,7 @@ permalink: "/notes/tag/{{ label.fileSlug }}/"
         
         <!-- TODO: merge this with the logic from "notes.njk" -->
         {% for month in notes | groupByMonth %}
-        <section class="flow">
-          <h2>{{ month.date | monthAndYear }}</h2>
-          <ul>
-            {% for note in month.collection %}
-            {% set labels = collections.label | tagsToLabels(note.data.tags) %}
-            <li>
-              <a href="{{ note.url }}">
-                {{ note | pickTitle }}
-                {% for label in labels %}
-                #{{ label.fileSlug }}
-                {% endfor %}
-                →
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </section>
+        {% include 'month-notes.njk' %}
         {% endfor %}
       </stack-layout>
     </center-layout>

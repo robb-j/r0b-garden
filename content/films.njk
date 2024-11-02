@@ -30,7 +30,7 @@ layout: html.njk
           <div class="filmGrid-image">
             <a href="{{ item.page.url }}">
               <frame-layout ratio="6:9">
-                {% media_image collections.media | findBySlug(item.data.media[0]), 60 %}
+                {% media_element collections.media | findBySlug(item.data.media[0]), 60 %}
               </frame-layout>
             </a>
           </div>

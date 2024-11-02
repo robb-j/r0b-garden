@@ -16,7 +16,7 @@ layout: html.njk
     <stack-layout>
       <sidebar-layout>
         <div>
-          {% media_image collections.media | findBySlug(media[0]), 200 %}
+          {% media_element collections.media | findBySlug(media[0]), 200 %}
         </div>
         <dl>
           <dt>when</dt>
