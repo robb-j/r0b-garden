@@ -144,3 +144,14 @@ body > header::after {
   border-top: 10px solid #5db171;
   border-left: 10vw solid transparent;
 }
+
+/* TODO: migrate back to alembic */
+frame-layout > picture {
+  inline-size: 100%;
+  block-size: 100%;
+}
+frame-layout > picture > img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}

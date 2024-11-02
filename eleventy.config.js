@@ -88,7 +88,12 @@ const shortcodes = {
     ) {
       const height = width * (media.data.height / media.data.width)
       const src = media.data.preview ?? media.data.original
-      return `<img src="${src}" width="${width}" height="${height}" loading="lazy" autoplay controls poster=${media.data.preview}>`
+      return [
+        `<picture>`,
+        `<source srcset="${media.data.original}" media="(max-width: ${width}px)" />`,
+        `<img src="${src}" width="${width}" height="${height}" loading="lazy" autoplay controls poster=${media.data.preview}>`,
+        `</picture>`,
+      ].join('\n')
     }
     return ''
   },
