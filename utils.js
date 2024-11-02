@@ -277,7 +277,7 @@ export function getAttachmentMedia(attachment) {
       height: attachment.meta.original.height,
       blurhash: attachment.blurhash,
       refs: {
-        mastodon_media: [attachment.id],
+        mastodon_media: [attachment.url],
       },
     },
     content: attachment.description,
@@ -394,11 +394,11 @@ export function prettyYaml(data) {
       if (Yaml.isSeq(item.value)) {
         item.value.flow = true
 
-        for (const id of item.value.items) {
-          if (Yaml.isScalar(id)) {
-            id.type = 'QUOTE_SINGLE'
-          }
-        }
+        // for (const id of item.value.items) {
+        //   if (Yaml.isScalar(id)) {
+        //     id.type = 'QUOTE_SINGLE'
+        //   }
+        // }
       }
     }
   }

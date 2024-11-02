@@ -284,8 +284,8 @@ async function processThreads(threads, { dryRun, overwrite }) {
       await emplaceStatus(status, pages, {
         skip: async (page) => {
           if (overwrite) {
-            const isFirst = page.data.refs?.mastodon_status?.[0] === status.id
-            page.data.refs.mastodon_status = [status.id]
+            const isFirst = page.data.refs?.mastodon_status?.[0] === status.url
+            page.data.refs.mastodon_status = [status.url]
 
             if (isFirst) {
               await insertPage(
@@ -355,7 +355,7 @@ async function insertPage(id, pages, contentType, content, data, dryRun) {
 async function updatePage(status, page, content, dryRun) {
   // Update the page
   page.content += '\n\n' + content
-  page.data.refs.mastodon_status.push(status.id)
+  page.data.refs.mastodon_status.push(status.url)
 
   if (dryRun) {
     console.log('update %o %O\n%s\n', page.url.toString(), content)

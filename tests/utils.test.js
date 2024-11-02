@@ -172,7 +172,7 @@ describe('loadCollection', () => {
       {
         date: new Date('2024-01-01T09:00:00.000Z'),
         refs: {
-          mastodon_status: [1],
+          mastodon_status: ['https://example.com/statuses/1'],
         },
       },
       'should parse YAML frontmatter',
@@ -424,7 +424,7 @@ describe('getAttachmentMedia', () => {
           height: 300,
           blurhash: 'plop',
           refs: {
-            mastodon_media: [1],
+            mastodon_media: ['https://example.com/original/abcdef.jpg'],
           },
         },
         content: 'cool image',

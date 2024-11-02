@@ -43,9 +43,7 @@ const filters = {
       .reverse()
   },
   mastodonStatusLink(refs) {
-    if (!refs?.mastodon_status?.[0]) return null
-    // TODO: this should be from data
-    return `https://hyem.tech/@rob/${refs.mastodon_status[0]}`
+    return refs?.mastodon_status?.[0] ?? null
   },
   isActiveLabel(label, tags) {
     return tags.some((t) => t === `label:${label.fileSlug}`)

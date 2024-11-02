@@ -53,7 +53,7 @@ Then it relies on the front-matter in your markdown files to reference external 
 ```md
 ---
 refs:
-  mastodon_status: [123456789]
+  mastodon_status: [https://example.com/@user/123456789]
 ---
 
 Hello, World!
@@ -68,7 +68,8 @@ For example:
 ```md
 ---
 refs:
-  mastodon_status: [123456789, 987654321]
+  mastodon_status:
+    [https://example.com/@user/123456789, https://example.com/@user/987654321]
 ---
 
 Hello, World!
@@ -199,9 +200,9 @@ for (const thread of threads) {
     const collection = collections[status.meta.type]
 
     const { content, data } = type.template(status)
-    landa.addRef(data, 'mastodon_status', status.id)
+    landa.addRef(data, 'mastodon_status', status.url)
 
-    const page = landa.findByRef(collection, 'mastodon_status', status.id)
+    const page = landa.findByRef(collection, 'mastodon_status', status.url)
 
     // TODO: is this simpler?
     // await landa.processPage({
