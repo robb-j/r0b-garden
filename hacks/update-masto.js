@@ -9,18 +9,22 @@ import { writePage } from '../utils.js'
 //
 
 const prefix = 'https://hyem.tech/@rob/'
+const toReplace = ['mastodon_status', 'mastodon_card']
 
 for (const name of fs.globSync('content/**/*.md')) {
   const { content = '', data = {} } = matter(fs.readFileSync(name, 'utf8'))
+  let changed = false
 
-  if (!data.refs?.mastodon_status) continue
+  for (const key of toReplace) {
+    if (!data.refs?.[key]) continue
 
-  for (let i = 0; i < data.refs.mastodon_status.length; i++) {
-    if (data.refs.mastodon_status[i].startsWith('https://')) continue
-    data.refs.mastodon_status[i] = new URL(
-      data.refs.mastodon_status[i],
-      prefix,
-    ).toString()
+    for (let i = 0; i < data.refs[key].length; i++) {
+      if (data.refs[key][i].startsWith('https://')) continue
+      data.refs[key][i] = new URL(data.refs[key][i], prefix)
+      changed = true
+    }
   }
-  await writePage({ url: name, data, content: content.trim() })
+  if (changed) {
+    await writePage({ url: name, data, content: content.trim() })
+  }
 }

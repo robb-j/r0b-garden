@@ -254,7 +254,7 @@ export function statusText(inputText, options = {}) {
 export function statusFrontmatter(status) {
   return {
     refs: {
-      mastodon_status: [status.id],
+      mastodon_status: [status.url],
     },
     date: new Date(status.created_at),
     media: status.meta?.media ?? undefined,
@@ -277,7 +277,7 @@ export function getAttachmentMedia(attachment) {
       height: attachment.meta.original.height,
       blurhash: attachment.blurhash,
       refs: {
-        mastodon_media: [attachment.url],
+        mastodon_media: [attachment.id],
       },
     },
     content: attachment.description,
@@ -293,7 +293,7 @@ export function getCardMedia(status) {
       height: status.card.height,
       blurhash: status.card.blurhash,
       refs: {
-        mastodon_card: [status.id],
+        mastodon_card: [status.url],
       },
     },
     content: status.card.title,
