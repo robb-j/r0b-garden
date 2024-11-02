@@ -34,7 +34,7 @@ export function emplace(map, key, operation = {}) {
   map.set(
     key,
     value !== undefined
-      ? operation.update?.(value, key, map) ?? value
+      ? (operation.update?.(value, key, map) ?? value)
       : operation.insert?.(key, map),
   )
 }
@@ -255,7 +255,7 @@ export function statusText(inputText, options = {}) {
 
 export function statusFrontmatter(status) {
   const refs = { mastodon_status: [status.url] }
-  if (status.card) refs.external = [status.card]
+  if (status.card) refs.external = [status.card.url]
   return {
     refs,
     date: new Date(status.created_at),
