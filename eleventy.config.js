@@ -1,7 +1,7 @@
 import 'dotenv/config'
 
 import { eleventyAlembic } from '@openlab/alembic/11ty.cjs'
-import pluginRss from '@11ty/eleventy-plugin-rss'
+import { feedPlugin } from '@11ty/eleventy-plugin-rss'
 import markdown from 'markdown-it'
 import markdownAnchor from 'markdown-it-anchor'
 import syntaxHighlight from '@11ty/eleventy-plugin-syntaxhighlight'
@@ -155,13 +155,68 @@ const shortcodes = {
   },
 }
 
+// const feeds = [
+//   {
+//     type: 'json',
+//     outputPath: '/films.json',
+//     collection: { name: 'film', limit: 0 },
+//     metadata: {
+//       language: 'en',
+//       title: "Rob's Films",
+//       subtitle: "The films I've watched recently",
+//       base: 'https://garden.r0b.tech/',
+//       author: { name: 'Rob Anderson' },
+//     },
+//   },
+//   {
+//     type: 'json',
+//     outputPath: '/photos.json',
+//     collection: { name: 'photo', limit: 0 },
+//     metadata: {
+//       language: 'en',
+//       title: "Rob's Pics",
+//       subtitle: "Nice pictures I've taken for you",
+//       base: 'https://garden.r0b.tech/',
+//       author: { name: 'Rob Anderson' },
+//     },
+//   },
+//   {
+//     type: 'json',
+//     outputPath: '/notes.json',
+//     collection: { name: 'note', limit: 0 },
+//     metadata: {
+//       language: 'en',
+//       title: "Rob's Notes",
+//       subtitle: "Thoughts I've had that might be interesting",
+//       base: 'https://garden.r0b.tech/',
+//       author: { name: 'Rob Anderson' },
+//     },
+//   },
+// ]
+
+const feedOptions = {
+  type: 'json',
+  outputPath: '/feed.json',
+  collection: {
+    name: 'all',
+    limit: 500,
+  },
+  metadata: {
+    language: 'en',
+    title: "Rob's garden feed",
+    subtitle: "All the stuff I've put in my CanvasGradient, right in your feed",
+    base: 'https://garden.r0b.tech/',
+    author: { name: 'Rob Anderson' },
+  },
+}
+
 /** @param {import("@11ty/eleventy/src/UserConfig.js").default} eleventyConfig */
 export default function (eleventyConfig) {
   eleventyConfig.addPlugin(syntaxHighlight)
   eleventyConfig.addPlugin(eleventyAlembic, { useLabcoat: true })
   eleventyConfig.addPlugin(datesPlugin)
-  eleventyConfig.addPlugin(pluginRss)
   eleventyConfig.addPlugin(syntaxHighlight)
+  // eleventyConfig.addPlugin(feedPlugin, feedOptions)
 
   const md = markdown({ linkify: true, html: true })
   md.use(markdownAnchor)
