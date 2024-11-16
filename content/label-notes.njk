@@ -20,24 +20,23 @@ permalink: "/notes/tag/{{ label.fileSlug }}/"
 </header>
 
 <main>
-  <sidebar-layout>
-  <nav>
+  <sidebar-layout sidewidth="20ch">
     <nav>
       {% include 'note-label-nav.njk' %}
     </nav>
-  </nav>
-  <div>
-    <center-layout>
-      <stack-layout>
-        <header class="flow">
-          <h1>my notes on ... {{ title }}</h1>
-        </header>
-        
-        <!-- TODO: merge this with the logic from "notes.njk" -->
-        {% for month in notes | groupByMonth %}
-        {% include 'month-notes.njk' %}
-        {% endfor %}
-      </stack-layout>
-    </center-layout>
-  </div>
+    <div>
+      <center-layout>
+        <stack-layout>
+          <header class="flow">
+            <h1>my notes on ... {{ title }}</h1>
+          </header>
+          
+          <!-- TODO: merge this with the logic from "notes.njk" -->
+          {% for month in notes | groupByMonth %}
+          {% include 'month-notes.njk' %}
+          {% endfor %}
+        </stack-layout>
+      </center-layout>
+    </div>
+  </sidebar-layout>
 </main>

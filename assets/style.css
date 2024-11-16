@@ -217,3 +217,19 @@ nav a:not([class]) {
   font-family: var(--font-mono);
   margin-block-start: var(--s3);
 }
+
+.noteLabelNav > summary {
+  font-weight: bold;
+}
+.noteLabelNav > ul {
+  margin-inline-start: 0;
+}
+@media (min-width: 768px) {
+  .noteLabelNav summary {
+    pointer-events: none;
+  }
+  .noteLabelNav summary::marker {
+    display: none;
+    content: '';
+  }
+}
