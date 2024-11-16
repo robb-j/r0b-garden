@@ -3,6 +3,7 @@
 :root {
   --unimportant: #888;
   --anchor: #498e5a;
+  --font-main: 'Rubik var', Rubik, system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -76,6 +77,8 @@ dl:not([class]) > dd + dt {
   padding: 0 var(--s0) var(--s0) var(--s0);
 }
 .photo figcaption {
+  text-align: center;
+  font-style: italic;
   margin-inline: var(--s-2);
   margin-block-end: var(--s0);
 }
@@ -161,6 +164,7 @@ hr {
 }
 
 pre {
+  font-family: var(--font-mono);
   font-size: 14px;
 }
 
@@ -206,6 +210,10 @@ nav a:not([class]) {
 }
 
 .metadata summary {
-  font-style: italic;
   color: var(--unimportant);
+}
+
+.note .metadata {
+  font-family: var(--font-mono);
+  margin-block-start: var(--s3);
 }
