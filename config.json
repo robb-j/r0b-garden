@@ -4,7 +4,7 @@
     "username": "r0b",
     "types": {
       "film": {
-        "hashtags": ["review"],
+        "hashtags": ["review", "films"],
         "directory": "content/films"
       },
       "note": {
