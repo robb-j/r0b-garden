@@ -2,7 +2,7 @@ name: mastodon
 
 on:
   schedule:
-    - cron: '42 7 * * *'
+    - cron: '50 22 * * *'
 
 jobs:
   mastodon:
