@@ -180,7 +180,7 @@ cli.command(
     yargs
       .option('dry-run', { type: 'boolean', default: false })
       .option('overwrite', { type: 'boolean', default: false })
-      .option('cached', { type: 'boolean', default: false }),
+      .option('from-cache', { type: 'boolean', default: false }),
   (args) => scrapeMastodon(args),
 )
 

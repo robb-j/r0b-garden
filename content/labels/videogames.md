@@ -1,7 +1,8 @@
 ---
 title: videogames
 refs:
-  mastodon_hashtag: ['videogames']
+  mastodon_hashtag:
+    - videogames
 ---
 
 

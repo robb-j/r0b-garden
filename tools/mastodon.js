@@ -99,6 +99,16 @@ function mkdir(path) {
 
 // const tagUrl = (tag) => `/notes/tag/${tag}`
 
+function findLabel(collection, tag) {
+  for (const [id, label] of collection) {
+    const refs = label.data?.refs?.mastodon_hashtag
+    if (Array.isArray(refs) && refs.includes(tag)) {
+      return `label:${id.replace('.md', '')}`
+    }
+  }
+  return `label:${tag}`
+}
+
 const templates = {
   film(status) {
     return {
@@ -115,7 +125,10 @@ const templates = {
       },
     }
   },
-  note(status) {
+  note(status, { labels }) {
+    const tags = status.tags
+      .filter((t) => t.name !== 'notes')
+      .map((t) => findLabel(labels, t.name))
     return {
       content: statusText(status.content, {
         stripUrls: statusUrls(status),
@@ -124,10 +137,7 @@ const templates = {
       }),
       data: {
         ...statusFrontmatter(status),
-        // TODO: map to "label"'s name ?'
-        tags: status.tags
-          .filter((t) => t.name !== 'notes')
-          .map((t) => `label:${t.name}`),
+        tags,
       },
     }
   },
@@ -261,6 +271,10 @@ async function processThreads(threads, statuses, { dryRun, overwrite }) {
     const pages = await loadCollection(base)
     collections[template] = pages
   }
+  const labels = await loadCollection(getDirectoryUrl('content/labels'))
+
+  // console.log(labels)
+  // process.exit()
 
   // Sort the threads oldest first so older toots have lower identifiers
   const oldestThreads = Object.entries(threads)
@@ -279,7 +293,7 @@ async function processThreads(threads, statuses, { dryRun, overwrite }) {
       const pages = collections[template]
 
       // Process the status using the related template
-      const { content, data } = templates[template](status)
+      const { content, data } = templates[template](status, { labels })
 
       await emplaceStatus(status, pages, statuses, {
         skip: async (page) => {
@@ -454,6 +468,7 @@ function mapDiff(mapA, mapB) {
   return new Map(newEntries)
 }
 
+/** @param {{ dryRun: boolean, overwrite: boolean, fromCache: boolean }} args */
 export async function scrapeMastodon(args) {
   // const args = {
   //   fromCache: process.argv.includes('--cached'),

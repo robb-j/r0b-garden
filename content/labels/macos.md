@@ -1,7 +1,8 @@
 ---
-title: macos
+title: macOS
 refs:
-  mastodon_hashtag: ['macos']
+  mastodon_hashtag:
+    - macOS
 ---
 
 
