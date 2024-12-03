@@ -16,7 +16,7 @@ layout: html.njk
         <details class="noteLabelNav">
           <summary>Tags</summary>
           <ul role="list">
-            {% for label in collections.label %}
+            {% for label in collections.label | sortByTitle %}
             {% set labelNotes = collections['label:' + label.fileSlug] or [] %}
             {% if labelNotes.length > 0 %}
             {% set isActive = label | isActiveLabel(tags, page) %}
