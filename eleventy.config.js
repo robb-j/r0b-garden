@@ -117,15 +117,18 @@ const shortcodes = {
       '</div>',
     ].join('')
   },
-  media(media, width) {
+  async media(media, width) {
     if (typeof media === 'string' || typeof media === 'number') {
       media = lookup(this.ctx.collections.media, media)
     }
 
+    // NOTE: this is an undocumented API
+    const content = await media.template.read()
+
     return [
       `<figure>`,
       renderMedia(media, width),
-      `<figcaption>${media.content}</figcaption>`,
+      `<figcaption>${content}</figcaption>`,
       `</figure>`,
     ].join('')
   },
