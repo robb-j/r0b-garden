@@ -431,16 +431,17 @@ async function processLabels(threads, blocklist, { dryRun, overwrite }) {
   for (const thread of Object.values(threads)) {
     for (const status of thread) {
       for (const tag of status.tags) {
-        if (blocklist.has(tag.name)) continue
+        const tagId = tag.name.toLowerCase() // Sometimes they are upper-case (?)
+        if (blocklist.has(tagId)) continue
 
-        const label = findByRef(labels, 'mastodon_hashtag', tag.name)
+        const label = findByRef(labels, 'mastodon_hashtag', tagId)
         if (!label) {
           const page = {
-            url: new URL(`${tag.name}.md`, directory),
+            url: new URL(`${tagId}.md`, directory),
             data: {
               title: tag.name,
               refs: {
-                mastodon_hashtag: [tag.name],
+                mastodon_hashtag: [tagId],
               },
             },
             content: '',
@@ -452,7 +453,7 @@ async function processLabels(threads, blocklist, { dryRun, overwrite }) {
             await writePage(page)
           }
 
-          labels.set(`${tag.name}.md`, page)
+          labels.set(`${tagId}.md`, page)
         }
       }
     }
