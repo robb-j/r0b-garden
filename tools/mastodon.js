@@ -106,7 +106,7 @@ function findLabel(collection, tag) {
       return `label:${id.replace('.md', '')}`
     }
   }
-  return `label:${tag}`
+  return `label:${tag.toLowerCase()}`
 }
 
 const templates = {
