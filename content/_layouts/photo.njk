@@ -37,10 +37,12 @@ layout: html.njk
   <masonry-layout>
     {% for slug in media %}
     {% set media = collections.media | findBySlug(slug) %}
-    <figure id="photo-{{ slug }}">
-      {% media_element media, 500 %}
-      <figcaption>{{ media.content | safe }}</figcaption>
-    </figure>
+    <a href="{{ media.data.original }}" target="_blank">
+      <figure id="photo-{{ slug }}">
+        {% media_element media, 500 %}
+        <figcaption>{{ media.content | safe }}</figcaption>
+      </figure>
+    </a>
     {% endfor %}
   </masonry-layout>
   {% endif %}

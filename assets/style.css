@@ -12,18 +12,6 @@
   }
 }
 
-/* NOTE: not in current version of labcoat */
-dl:not([class]) dt {
-  font-weight: 600;
-  font-style: italic;
-}
-dl:not([class]) dd {
-  margin-inline-start: 2ch;
-}
-dl:not([class]) > dd + dt {
-  margin-top: var(--s-1);
-}
-
 /* === */
 
 .tune {
@@ -77,10 +65,9 @@ dl:not([class]) > dd + dt {
   padding: 0 var(--s0) var(--s0) var(--s0);
 }
 .photo figcaption {
-  text-align: center;
-  font-style: italic;
   margin-inline: var(--s-2);
   margin-block-end: var(--s0);
+  word-break: break-word;
 }
 .photoMeta {
   font-style: italic;
@@ -88,9 +75,17 @@ dl:not([class]) > dd + dt {
 .photo figure > img {
   width: 100%;
 }
-
-figure {
-  text-align: center;
+.photo masonry-layout > a {
+  break-inside: avoid;
+  display: block;
+}
+.photo masonry-layout > a:not(:focus) {
+  color: currentColor;
+  text-decoration: none;
+}
+.photo masonry-layout > a:focus {
+  outline: none;
+  text-decoration-style: solid;
 }
 
 figure > img {
@@ -184,16 +179,8 @@ body > header::after {
   border-top: 10px solid #5db171;
   border-left: 10vw solid transparent;
 }
-
-/* TODO: migrate back to alembic */
-frame-layout > picture {
-  inline-size: 100%;
-  block-size: 100%;
-}
-frame-layout > picture > img {
-  inline-size: 100%;
-  block-size: 100%;
-  object-fit: cover;
+body > header:not([class]) a {
+  font-weight: 400;
 }
 
 header a:not([class]),
