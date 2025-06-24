@@ -86,7 +86,7 @@ function renderMedia(media, width = media?.data?.width) {
   }
 
   if (imageTypes.has(media.data?.type)) {
-    return `<img src="${media.data.original}" width="${width}" height="${autoHeight}" alt="${media.data.alt}">`
+    return `<img src="${media.data.original}" width="${width}" height="${autoHeight}" alt="${media.data.alt ?? ''}">`
   }
 
   console.log('unknown media', media?.data?.type)
