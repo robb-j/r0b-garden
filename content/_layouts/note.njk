@@ -40,9 +40,9 @@ layout: html.njk
         <stack-layout>
           <header>
             <h1>{{ title or 'Note' }}</h1>
-            <cluster-layout>
+            <cluster-layout space="s-1">
               {% for label in collections.label | tagsToLabels(tags) %}
-              <!-- <a href="/notes/tag/{{ label.fileSlug }}">#{{ label.data.title }}</a> -->
+              <a href="/notes/tag/{{ label.fileSlug }}">#{{ label.data.title }}</a>
               {% endfor %}
             </cluster-layout>
           </header>
