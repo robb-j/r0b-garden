@@ -123,7 +123,7 @@ const shortcodes = {
     }
 
     // NOTE: this is an undocumented API
-    const content = await media.template.read()
+    const { content } = await media.template.read()
 
     return [
       `<figure>`,
