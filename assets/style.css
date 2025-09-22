@@ -15,8 +15,7 @@
 /* === */
 
 .tune {
-  margin: calc(-1 * var(--s1));
-  padding: var(--s1);
+  padding: var(--s-1);
 }
 .tune summary {
   display: flex;
