@@ -23,15 +23,11 @@
     "prism-themes": "^1.9.0",
     "typescript": "^5.3.3",
     "yaml": "^2.3.4",
-    "yargs": "^17.7.2",
-    "yorkie": "^2.0.0"
+    "yargs": "^17.7.2"
   },
   "prettier": {
     "semi": false,
     "singleQuote": true
-  },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
   },
   "lint-staged": {
     "*.{js,json,css,md,ts,tsx}": [

@@ -137,7 +137,7 @@ async function createMedia(args = {}) {
   } else {
     await resolveMedia(media)
     await writePage({ url: mediaUrl, ...media })
-    console.log('created content/media/%s.id', media.id)
+    console.log('created content/media/%s.md', media.id)
   }
 
   prompt.close()
