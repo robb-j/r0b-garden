@@ -13,11 +13,11 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: "npm"
@@ -33,7 +33,7 @@ jobs:
           S3_BUCKET: r0b-media
           S3_CDN_URL: https://media.r0b.io
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Automated Change
           file_pattern: content
